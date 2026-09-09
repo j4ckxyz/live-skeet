@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { applyTheme, useSettings, type ThemeChoice } from "@/lib/settings";
 import { useThread } from "@/lib/store";
+import { MAX_TAGS, normaliseTag } from "@/lib/tags";
 import { CloseIcon } from "./icons";
 
 type Props = {
@@ -123,6 +124,10 @@ export function SettingsSheet({ onClose, onSignOut }: Props) {
               checked={settings.compressImages}
               onChange={(compressImages) => set({ compressImages })}
             />
+          </Section>
+
+          <Section title="Hidden hashtags">
+            <ThreadTagEditor />
           </Section>
 
           <Section title="Alt text">
@@ -264,6 +269,94 @@ export function SettingsSheet({ onClose, onSignOut }: Props) {
         </div>
       </div>
     </div>
+  );
+}
+
+function ThreadTagEditor() {
+  const threadTags = useThread((state) => state.threadTags);
+  const setThreadTags = useThread((state) => state.setThreadTags);
+  const knownTags = useThread((state) => state.knownTags);
+  const forgetTag = useThread((state) => state.forgetTag);
+  const [value, setValue] = useState("");
+
+  const add = (raw: string) => {
+    const tag = normaliseTag(raw);
+    if (!tag) return;
+    setThreadTags([...threadTags, tag]);
+    setValue("");
+  };
+
+  return (
+    <>
+      <Field
+        label="Applied to every post in this thread"
+        hint="Stored on each post record and indexed by Bluesky, but never shown in the text. Eight tags at most, counting any written into the text itself."
+      >
+        <div className="flex flex-wrap items-center gap-1 rounded-xl border border-line bg-bg-raised px-2 py-1.5">
+          {threadTags.map((tag) => (
+            <button
+              key={tag}
+              type="button"
+              onClick={() =>
+                setThreadTags(threadTags.filter((entry) => entry !== tag))
+              }
+              className="ls-press flex items-center gap-1 rounded-full bg-bg-sunken px-2 py-0.5 text-[0.78rem]"
+              title="Remove"
+            >
+              #{tag}
+              <CloseIcon className="size-2.5" />
+            </button>
+          ))}
+          <input
+            value={value}
+            onChange={(event) => setValue(event.target.value)}
+            onKeyDown={(event) => {
+              if (event.key === "Enter" || event.key === "," || event.key === " ") {
+                event.preventDefault();
+                add(value);
+              }
+            }}
+            onBlur={() => add(value)}
+            disabled={threadTags.length >= MAX_TAGS}
+            placeholder={
+              threadTags.length >= MAX_TAGS ? "Eight is the limit" : "Add a tag"
+            }
+            className="min-w-28 flex-1 bg-transparent py-0.5 text-[0.85rem] outline-none placeholder:text-ink-faint"
+          />
+        </div>
+      </Field>
+
+      {knownTags.length > 0 ? (
+        <div>
+          <p className="mb-1 text-[0.82rem] font-medium">Used before</p>
+          <div className="flex flex-wrap gap-1">
+            {knownTags.map((tag) => (
+              <span
+                key={tag}
+                className="flex items-center gap-1 rounded-full border border-line px-2 py-0.5 text-[0.75rem] text-ink-muted"
+              >
+                <button
+                  type="button"
+                  onClick={() => setThreadTags([...threadTags, tag])}
+                  className="hover:text-ink"
+                  title="Apply to the whole thread"
+                >
+                  #{tag}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => forgetTag(tag)}
+                  aria-label={`Forget ${tag}`}
+                  className="text-ink-faint hover:text-danger"
+                >
+                  <CloseIcon className="size-2.5" />
+                </button>
+              </span>
+            ))}
+          </div>
+        </div>
+      ) : null}
+    </>
   );
 }
 

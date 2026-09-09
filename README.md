@@ -31,7 +31,23 @@ you configure for alt text.
 - **Threads.** Start a new thread and the first post becomes the root, or paste
   the link to an existing post to carry on from there. Both `at://` URIs and
   `bsky.app/profile/.../post/...` links are accepted, and your existing replies
-  in that thread are loaded from your repository.
+  in that thread are loaded from your repository. New posts normally continue
+  from the tip, but you can pick any post in the thread and add the next one
+  under that instead.
+- **Posts on their own.** Some things deserve their own post rather than being
+  buried in a thread. Switch the composer to "On its own" and it posts as a
+  root. Those posts collect in a second lane beside the thread, kept in this
+  browser so the session survives a reload. They are cleared with one button
+  and nothing is removed from Bluesky.
+- **Quotes.** Paste a post link into the composer and it becomes a quote rather
+  than a bare URL, with media alongside it if you attach any. Every post in
+  either lane has a one-click copy of its own `bsky.app` link, so quoting your
+  own earlier post takes two actions.
+- **Hashtags.** Tags you use are remembered and offered back as suggestions on
+  later posts, since a live thread usually wants the same tag throughout. Tags
+  can also be hidden: stored on the post record and indexed by Bluesky, but
+  never shown in the text. Set them per post, or set them once in settings and
+  they ride along on every post in the thread.
 - **Sending.** Posts are queued in order, so each one lands as a reply to the
   last. The composer clears the instant you press send and the network work
   happens behind it. Attachments are uploaded the moment they are added, so
@@ -75,11 +91,31 @@ you choose.
 
 ## Keyboard
 
+Press Cmd/Ctrl and `/` in the app for the full list.
+
+Anywhere:
+
 | Key | Action |
 | --- | --- |
 | Cmd/Ctrl + Enter | Send the post or reply |
-| Cmd/Ctrl + , | Open settings |
-| Escape | Close a sheet |
+| Cmd/Ctrl + ↑ / ↓ | Move between posts in the current lane |
+| Alt + Enter | Continue the thread under the selected post |
+| Cmd/Ctrl + Shift + C | Copy the link to the selected post |
+| Cmd/Ctrl + Shift + N | Switch between the thread and a post on its own |
+| Cmd/Ctrl + , | Settings |
+| Cmd/Ctrl + / | Keyboard reference |
+| Escape | Clear the selection, or leave the composer |
+
+When the composer is not focused:
+
+| Key | Action |
+| --- | --- |
+| J / ↓ | Next post |
+| K / ↑ | Previous post |
+| Enter | Back to the composer |
+| R | Continue the thread under the selected post |
+| C | Copy the link to the selected post |
+| O | Open the selected post on Bluesky |
 
 ## Design
 

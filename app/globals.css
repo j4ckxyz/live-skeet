@@ -203,3 +203,28 @@ input {
   position: absolute;
   inset: -7px;
 }
+
+/* One lane on a narrow window, two side by side once there is room. The aside
+   lane sits below the thread on a phone rather than squeezing both in. */
+.ls-lanes {
+  display: grid;
+  grid-template-rows: minmax(0, 1fr);
+  grid-template-columns: minmax(0, 1fr);
+}
+.ls-aside {
+  border-top-width: 1px;
+}
+@media (min-width: 780px) {
+  .ls-lanes:has(.ls-aside) {
+    grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
+  }
+  .ls-aside {
+    border-top-width: 0;
+    border-left-width: 1px;
+  }
+}
+@media (max-width: 779px) {
+  .ls-lanes:has(.ls-aside) {
+    grid-template-rows: minmax(0, 1.4fr) minmax(0, 1fr);
+  }
+}

@@ -3,6 +3,8 @@
  * uses one consistent set of names and default sizes.
  */
 import {
+  Copy,
+  CornerDownRight,
   ExternalLink,
   Heart,
   ImagePlus,
@@ -11,6 +13,8 @@ import {
   Quote,
   Repeat2,
   Settings2,
+  Hash,
+  Keyboard,
   Sparkles,
   TriangleAlert,
   X,
@@ -64,6 +68,22 @@ export function SparkIcon({ className = "size-3.5" }: IconProps) {
 
 export function WarningIcon({ className = "size-3.5" }: IconProps) {
   return <TriangleAlert className={className} strokeWidth={stroke} aria-hidden />;
+}
+
+export function CopyIcon({ className = "size-3.5" }: IconProps) {
+  return <Copy className={className} strokeWidth={stroke} aria-hidden />;
+}
+
+export function TagIcon({ className = "size-3.5" }: IconProps) {
+  return <Hash className={className} strokeWidth={stroke} aria-hidden />;
+}
+
+export function BranchIcon({ className = "size-3.5" }: IconProps) {
+  return <CornerDownRight className={className} strokeWidth={stroke} aria-hidden />;
+}
+
+export function KeyboardIcon({ className = "size-[18px]" }: IconProps) {
+  return <Keyboard className={className} strokeWidth={stroke} aria-hidden />;
 }
 
 export function LinkIcon({ className = "size-3.5" }: IconProps) {

@@ -241,16 +241,19 @@ export async function createPost(options: {
   account: Account;
   text: string;
   langs: string[];
+  /** Hidden hashtags, carried in the record rather than the visible text. */
+  tags?: string[];
   reply?: { root: StrongRef; parent: StrongRef };
   embed?: OutgoingEmbed;
+  quote?: StrongRef;
 }): Promise<StrongRef> {
   const { account, text } = options;
 
   const rich = await RichText.resolve(text, { resolver: account.client });
 
-  let embed: app.bsky.feed.post.Main["embed"];
+  let media: app.bsky.feed.post.Main["embed"];
   if (options.embed?.kind === "images") {
-    embed = {
+    media = {
       $type: "app.bsky.embed.images",
       images: options.embed.images.map((image) => ({
         image: image.blob,
@@ -259,7 +262,7 @@ export async function createPost(options: {
       })),
     };
   } else if (options.embed?.kind === "video") {
-    embed = {
+    media = {
       $type: "app.bsky.embed.video",
       video: options.embed.blob,
       alt: options.embed.alt || undefined,
@@ -269,10 +272,25 @@ export async function createPost(options: {
     };
   }
 
+  // A quote alone is a record embed; a quote with media is the combined form.
+  let embed: app.bsky.feed.post.Main["embed"];
+  if (options.quote && media) {
+    embed = {
+      $type: "app.bsky.embed.recordWithMedia",
+      record: { $type: "app.bsky.embed.record", record: options.quote },
+      media: media as never,
+    };
+  } else if (options.quote) {
+    embed = { $type: "app.bsky.embed.record", record: options.quote };
+  } else {
+    embed = media;
+  }
+
   const res = await account.client.call(postAction, {
     text: rich.text,
     facets: rich.facets,
     langs: options.langs,
+    ...(options.tags?.length ? { tags: options.tags } : {}),
     createdAt: currentDatetimeString(),
     ...(options.reply
       ? {
@@ -303,6 +321,8 @@ export type ThreadPostView = {
   createdAt: string;
   images: { thumb: string; alt: string }[];
   hasVideo: boolean;
+  hasQuote: boolean;
+  tags: string[];
   stats: { likes: number; reposts: number; replies: number; quotes: number };
 };
 
@@ -323,6 +343,36 @@ export async function resolveRootRef(
   return { root: { uri: found.uri, cid: found.cid }, authorDid: did };
 }
 
+export type QuotePreview = {
+  ref: StrongRef;
+  handle: string;
+  displayName?: string;
+  avatar?: string;
+  text: string;
+};
+
+/** Turns a pasted post link into something we can embed and show in the composer. */
+export async function resolveQuote(
+  account: Account,
+  ref: PostRef,
+): Promise<QuotePreview> {
+  const did = ref.repo.startsWith("did:")
+    ? ref.repo
+    : await resolveHandleToDid(ref.repo);
+  const uri = buildPostUri(did, ref.rkey);
+  const res = await account.client.call(app.bsky.feed.getPosts, { uris: [uri] });
+  const found = res.posts[0];
+  if (!found) throw new Error("That post could not be found.");
+  const record = found.record as { text?: string };
+  return {
+    ref: { uri: found.uri, cid: found.cid },
+    handle: found.author.handle,
+    displayName: found.author.displayName,
+    avatar: found.author.avatar,
+    text: record.text ?? "",
+  };
+}
+
 function viewFromPost(post: app.bsky.feed.defs.PostView): ThreadPostView {
   const record = post.record as { text?: string; createdAt?: string };
   const embed = post.embed as
@@ -341,7 +391,15 @@ function viewFromPost(post: app.bsky.feed.defs.PostView): ThreadPostView {
     text: record.text ?? "",
     createdAt: record.createdAt ?? post.indexedAt,
     images,
-    hasVideo: embed?.$type === "app.bsky.embed.video#view",
+    hasVideo:
+      embed?.$type === "app.bsky.embed.video#view" ||
+      embed?.$type === "app.bsky.embed.recordWithMedia#view",
+    hasQuote:
+      embed?.$type === "app.bsky.embed.record#view" ||
+      embed?.$type === "app.bsky.embed.recordWithMedia#view",
+    tags: Array.isArray((post.record as { tags?: unknown }).tags)
+      ? ((post.record as { tags: string[] }).tags ?? [])
+      : [],
     stats: {
       likes: post.likeCount ?? 0,
       reposts: post.repostCount ?? 0,
