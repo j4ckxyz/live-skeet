@@ -4,9 +4,11 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
+    "prebuild": "bun install",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "deploy": "bun run build && bunx wrangler pages deploy out --project-name live-skeet"
   },
   "dependencies": {
     "@atproto/lex": "^0.3.8",

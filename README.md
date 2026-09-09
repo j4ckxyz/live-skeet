@@ -80,14 +80,19 @@ On Cloudflare Pages, connect the repository and set:
 
 | Setting | Value |
 | --- | --- |
-| Build command | `bun run build` |
+| Framework preset | None |
+| Build command | `bun run build` (or `bun install && bun run build`) |
 | Output directory | `out` |
 | `NODE_VERSION` | `22` |
 
-`bun.lock` is committed, so the build image installs with Bun. Or upload a build
-straight from your machine:
+`bun.lock` is committed, so the build image installs with Bun. A `prebuild` script
+ensures dependencies are installed if Cloudflare's auto-installer skips Bun's text lockfile.
+
+Or upload a build straight from your machine using Wrangler:
 
 ```sh
+bun run deploy
+# or manually:
 bun run build
 bunx wrangler pages deploy out --project-name live-skeet
 ```
