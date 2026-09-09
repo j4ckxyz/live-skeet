@@ -132,7 +132,7 @@ export async function uploadImageBlob(
   blob: Blob,
 ): Promise<BlobRef> {
   const res = await account.client.uploadBlob(blob, {
-    headers: { "content-type": blob.type || "image/jpeg" },
+    encoding: (blob.type || "image/jpeg") as `${string}/${string}`,
     service: null,
   });
   return res.body.blob;
