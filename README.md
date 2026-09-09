@@ -76,8 +76,26 @@ The app is a static export, so it needs no server:
 bun run build   # writes ./out
 ```
 
-On Cloudflare Pages, set the build command to `bun run build` and the output
-directory to `out`. Any static host works the same way.
+On Cloudflare Pages, connect the repository and set:
+
+| Setting | Value |
+| --- | --- |
+| Build command | `bun run build` |
+| Output directory | `out` |
+| `NODE_VERSION` | `22` |
+
+`bun.lock` is committed, so the build image installs with Bun. Or upload a build
+straight from your machine:
+
+```sh
+bun run build
+bunx wrangler pages deploy out --project-name live-skeet
+```
+
+Any static host works the same way. `public/_headers` is picked up by Cloudflare
+Pages and sets a content security policy along with the usual framing and
+sniffing protections. `connect-src` has to stay open because the app talks to
+whichever PDS you are on and whichever AI endpoint you configure.
 
 ## Settings
 
