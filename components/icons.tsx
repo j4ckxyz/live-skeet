@@ -12,6 +12,7 @@ import {
   MessageCircle,
   Quote,
   Repeat2,
+  Plus,
   Settings2,
   Hash,
   Keyboard,
@@ -80,6 +81,10 @@ export function TagIcon({ className = "size-3.5" }: IconProps) {
 
 export function BranchIcon({ className = "size-3.5" }: IconProps) {
   return <CornerDownRight className={className} strokeWidth={stroke} aria-hidden />;
+}
+
+export function PlusIcon({ className = "size-[18px]" }: IconProps) {
+  return <Plus className={className} strokeWidth={2} aria-hidden />;
 }
 
 export function KeyboardIcon({ className = "size-[18px]" }: IconProps) {

@@ -12,7 +12,11 @@ import { applyTheme, useSettings } from "@/lib/settings";
 import { loadLocalState, storedRootUri, useThread } from "@/lib/store";
 import { webUrlForPost } from "@/lib/aturi";
 import { SignIn } from "@/components/SignIn";
-import { Composer, composerHint } from "@/components/Composer";
+import {
+  AsideComposerSheet,
+  Composer,
+  composerHint,
+} from "@/components/Composer";
 import { ThreadList } from "@/components/ThreadList";
 import { SettingsSheet } from "@/components/SettingsSheet";
 import { ShortcutsSheet } from "@/components/ShortcutsSheet";
@@ -35,7 +39,8 @@ export default function Page() {
   const lastPolledAt = useThread((state) => state.lastPolledAt);
   const aside = useThread((state) => state.aside);
   const lane = useThread((state) => state.lane);
-  const setLane = useThread((state) => state.setLane);
+  const openAside = useThread((state) => state.openAside);
+  const closeAside = useThread((state) => state.closeAside);
   const moveSelection = useThread((state) => state.moveSelection);
   const selectPost = useThread((state) => state.selectPost);
   const replyToSelected = useThread((state) => state.replyToSelected);
@@ -45,6 +50,9 @@ export default function Page() {
   const pollSeconds = useSettings((state) => state.pollSeconds);
   const compact = useSettings((state) => state.compact);
 
+  const threadRef = useRef<HTMLElement>(null);
+  const stuckToBottom = useRef(true);
+  const [laneView, setLaneView] = useState<"thread" | "aside">("thread");
   const [restoring, setRestoring] = useState(true);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [shortcutsOpen, setShortcutsOpen] = useState(false);
@@ -136,6 +144,35 @@ export default function Page() {
     document.querySelector<HTMLTextAreaElement>("textarea")?.focus();
   }, []);
 
+  // The newest post should stay in view just above the composer, unless the
+  // reader has deliberately scrolled back up the thread.
+  const threadCount = useThread((state) => state.posts.length);
+  const threadLoading = useThread((state) => state.loadingThread);
+
+  useEffect(() => {
+    const node = threadRef.current;
+    if (!node) return;
+    const onScroll = () => {
+      const distance = node.scrollHeight - node.scrollTop - node.clientHeight;
+      stuckToBottom.current = distance < 160;
+    };
+    node.addEventListener("scroll", onScroll, { passive: true });
+    return () => node.removeEventListener("scroll", onScroll);
+  }, []);
+
+  useEffect(() => {
+    const node = threadRef.current;
+    if (!node || !stuckToBottom.current) return;
+    node.scrollTo({ top: node.scrollHeight, behavior: "smooth" });
+  }, [threadCount]);
+
+  useEffect(() => {
+    const node = threadRef.current;
+    if (!node || threadLoading) return;
+    stuckToBottom.current = true;
+    node.scrollTop = node.scrollHeight;
+  }, [threadLoading]);
+
   useEffect(() => {
     const onKey = (event: KeyboardEvent) => {
       const mod = event.metaKey || event.ctrlKey;
@@ -151,9 +188,10 @@ export default function Page() {
         setShortcutsOpen((open) => !open);
         return;
       }
-      if (mod && event.shiftKey && event.key.toLowerCase() === "n") {
+      if (mod && event.shiftKey && event.key.toLowerCase() === "o") {
         event.preventDefault();
-        setLane(useThread.getState().lane === "aside" ? "thread" : "aside");
+        if (useThread.getState().lane === "aside") closeAside();
+        else openAside();
         return;
       }
       if (mod && event.shiftKey && event.key.toLowerCase() === "c") {
@@ -174,6 +212,9 @@ export default function Page() {
       }
       if (event.key === "Escape") {
         const state = useThread.getState();
+        if (state.lane === "aside") {
+          return; // The separate composer handles its own dismissal.
+        }
         if (typing) {
           (event.target as HTMLElement).blur();
         } else if (state.selectedId) {
@@ -233,7 +274,8 @@ export default function Page() {
     openSelected,
     replyToSelected,
     selectPost,
-    setLane,
+    openAside,
+    closeAside,
     setReplyTo,
   ]);
 
@@ -249,7 +291,7 @@ export default function Page() {
     return <SignIn onSignedIn={(next) => void adopt(next)} />;
   }
 
-  const showAside = aside.length > 0 || lane === "aside";
+  const showAside = aside.length > 0;
 
   return (
     <div
@@ -257,17 +299,25 @@ export default function Page() {
         showAside ? "max-w-[62rem]" : "max-w-[38rem]"
       }`}
     >
-      <TopBar onOpenSettings={() => setSettingsOpen(true)} />
+      <TopBar
+        onOpenSettings={() => setSettingsOpen(true)}
+        onNewAside={openAside}
+        onShowAside={() => setLaneView("aside")}
+        asideCount={aside.length}
+      />
       <ThreadBar />
-      <Composer />
 
-      <div className="ls-lanes min-h-0 flex-1">
-        <main className="ls-scroller min-h-0 overflow-y-auto">
+      <div className="ls-lanes min-h-0 flex-1" data-lane={laneView}>
+        <main ref={threadRef} className="ls-scroller ls-tail min-h-0 overflow-y-auto">
           <ThreadList lane="thread" />
         </main>
 
-        {showAside ? <AsideLane /> : null}
+        {showAside ? <AsideLane onShowThread={() => setLaneView("thread")} /> : null}
       </div>
+
+      <Composer />
+
+      {lane === "aside" ? <AsideComposerSheet /> : null}
 
       <footer
         className={`ls-safe-bottom flex items-center gap-2 border-t border-line bg-bg px-3 pt-1.5 text-[0.7rem] text-ink-faint ${
@@ -314,14 +364,31 @@ export default function Page() {
   );
 }
 
-function AsideLane() {
+function AsideLane({
+  onShowThread,
+}: {
+  onShowThread: () => void;
+}) {
   const count = useThread((state) => state.aside.length);
   const clearAside = useThread((state) => state.clearAside);
+  const scroller = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const node = scroller.current;
+    if (node) node.scrollTop = node.scrollHeight;
+  }, [count]);
 
   return (
     <aside className="ls-aside flex min-h-0 flex-col border-line">
       <div className="flex items-center gap-2 border-b border-line-soft bg-bg-raised px-3 py-1.5 text-[0.75rem]">
-        <span className="flex-1 truncate text-ink-muted">
+        <button
+          type="button"
+          onClick={onShowThread}
+          className="ls-tap ls-press hidden text-ink-muted hover:text-ink max-[779px]:block"
+        >
+          Back to the thread
+        </button>
+        <span className="flex-1 truncate text-ink-muted max-[779px]:hidden">
           On their own · {count} {count === 1 ? "post" : "posts"}
         </span>
         {count > 0 ? (
@@ -335,7 +402,7 @@ function AsideLane() {
           </button>
         ) : null}
       </div>
-      <div className="ls-scroller min-h-0 flex-1 overflow-y-auto">
+      <div ref={scroller} className="ls-scroller ls-tail min-h-0 flex-1 overflow-y-auto">
         <ThreadList lane="aside" />
       </div>
     </aside>

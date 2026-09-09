@@ -4,9 +4,19 @@ import { useState } from "react";
 import { useThread } from "@/lib/store";
 import { useSettings } from "@/lib/settings";
 import { webUrlForPost } from "@/lib/aturi";
-import { LinkIcon, SettingsIcon, SpinnerIcon } from "./icons";
+import { LinkIcon, PlusIcon, SettingsIcon, SpinnerIcon } from "./icons";
 
-export function TopBar({ onOpenSettings }: { onOpenSettings: () => void }) {
+export function TopBar({
+  onOpenSettings,
+  onNewAside,
+  onShowAside,
+  asideCount,
+}: {
+  onOpenSettings: () => void;
+  onNewAside: () => void;
+  onShowAside: () => void;
+  asideCount: number;
+}) {
   const profile = useThread((state) => state.profile);
   const posts = useThread((state) => state.posts);
   const rootRef = useThread((state) => state.rootRef);
@@ -58,6 +68,27 @@ export function TopBar({ onOpenSettings }: { onOpenSettings: () => void }) {
           <LinkIcon className="size-[18px]" />
         </a>
       ) : null}
+
+      {asideCount > 0 ? (
+        <button
+          type="button"
+          onClick={onShowAside}
+          className="ls-tap ls-press hidden rounded-full bg-bg-sunken px-2 py-1 text-[0.75rem] font-medium text-ink-muted max-[779px]:block"
+          title="Posts on their own"
+        >
+          {asideCount} aside
+        </button>
+      ) : null}
+
+      <button
+        type="button"
+        onClick={onNewAside}
+        className="ls-tap ls-press rounded-full p-1.5 text-ink-muted hover:bg-bg-sunken"
+        aria-label="Write a post on its own"
+        title="Write a post on its own"
+      >
+        <PlusIcon />
+      </button>
 
       <button
         type="button"

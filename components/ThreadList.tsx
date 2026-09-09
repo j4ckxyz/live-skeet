@@ -5,6 +5,7 @@ import { type Lane, type LocalPost, useThread } from "@/lib/store";
 import { useSettings } from "@/lib/settings";
 import { webUrlForPost } from "@/lib/aturi";
 import {
+  BranchIcon,
   CopyIcon,
   HeartIcon,
   LinkIcon,
@@ -42,8 +43,9 @@ export function ThreadList({ lane = "thread" }: { lane?: Lane }) {
   const compact = useSettings((state) => state.compact);
   const now = useNow();
 
-  // Newest first, so the post you just sent sits right under the composer.
-  const ordered = useMemo(() => [...posts].reverse(), [posts]);
+  // Oldest first, so the thread reads downwards and the newest post sits
+  // directly above the composer.
+  const ordered = useMemo(() => posts, [posts]);
 
   if (lane === "thread" && loading) {
     return (
@@ -71,8 +73,8 @@ export function ThreadList({ lane = "thread" }: { lane?: Lane }) {
         <PostRow
           key={post.id}
           post={post}
-          number={ordered.length - index}
-          isTip={index === 0}
+          number={index + 1}
+          isTip={index === ordered.length - 1}
           compact={compact}
           now={now}
         />
@@ -128,7 +130,7 @@ function PostRow({
     <li
       ref={ref}
       onClick={() => selectPost(post.id)}
-      className={`ls-enter ls-row border-b border-line-soft ${
+      className={`ls-enter ls-row group/post border-b border-line-soft ${
         compact ? "px-2.5 py-2" : "px-3 py-2.5"
       } ${post.status === "sending" ? "opacity-60" : ""} ${
         selected ? "bg-bg-raised" : ""
@@ -155,7 +157,9 @@ function PostRow({
           <button
             type="button"
             onClick={copyLink}
-            className="ls-tap ls-press rounded p-1 text-ink-faint hover:text-ink"
+            className={`ls-tap ls-press rounded p-1 text-ink-faint hover:text-ink ${
+              selected ? "" : "opacity-0 group-hover/post:opacity-100 group-focus-within/post:opacity-100"
+            }`}
             aria-label="Copy the link to this post"
             title="Copy link"
           >
@@ -171,10 +175,19 @@ function PostRow({
           <button
             type="button"
             onClick={() => setReplyTo(replyTarget ? null : post.id)}
-            className="ls-tap ls-press rounded p-1 text-[0.75rem] hover:text-ink"
-            title="Add the next post under this one"
+            className={`ls-tap ls-press rounded p-1 ${
+              replyTarget
+                ? "text-ink"
+                : "text-ink-faint opacity-0 hover:text-ink group-hover/post:opacity-100 group-focus-within/post:opacity-100"
+            } ${selected ? "opacity-100" : ""}`}
+            title={
+              replyTarget
+                ? "Back to the end of the thread"
+                : "Add the next post under this one"
+            }
+            aria-label="Add the next post under this one"
           >
-            {replyTarget ? "Replying here" : "Reply here"}
+            <BranchIcon />
           </button>
         ) : null}
 
@@ -183,7 +196,9 @@ function PostRow({
             href={link}
             target="_blank"
             rel="noreferrer"
-            className="ls-tap ls-press rounded p-1 text-ink-faint hover:text-ink"
+            className={`ls-tap ls-press rounded p-1 text-ink-faint hover:text-ink ${
+              selected ? "" : "opacity-0 group-hover/post:opacity-100 group-focus-within/post:opacity-100"
+            }`}
             aria-label="Open on Bluesky"
             title="Open on Bluesky"
           >
@@ -213,7 +228,9 @@ function PostRow({
             <button
               type="button"
               onClick={() => setConfirmDelete(true)}
-              className="text-[0.75rem] hover:text-danger"
+              className={`text-[0.75rem] hover:text-danger ${
+                selected ? "" : "opacity-0 group-hover/post:opacity-100 group-focus-within/post:opacity-100"
+              }`}
             >
               Delete
             </button>

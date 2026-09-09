@@ -211,20 +211,31 @@ input {
   grid-template-rows: minmax(0, 1fr);
   grid-template-columns: minmax(0, 1fr);
 }
-.ls-aside {
-  border-top-width: 1px;
-}
 @media (min-width: 780px) {
   .ls-lanes:has(.ls-aside) {
     grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
   }
   .ls-aside {
-    border-top-width: 0;
     border-left-width: 1px;
   }
 }
+
+/* Too narrow for two columns, so show whichever lane the composer is aimed at
+   rather than halving the height of both. */
 @media (max-width: 779px) {
-  .ls-lanes:has(.ls-aside) {
-    grid-template-rows: minmax(0, 1.4fr) minmax(0, 1fr);
+  .ls-lanes[data-lane="thread"] .ls-aside,
+  .ls-lanes[data-lane="aside"] > main {
+    display: none;
   }
+}
+
+/* A short thread should sit against the composer rather than floating at the
+   top of the pane. Auto margin keeps it there without breaking scrolling once
+   the thread outgrows the viewport. */
+.ls-tail {
+  display: flex;
+  flex-direction: column;
+}
+.ls-tail > * {
+  margin-top: auto;
 }

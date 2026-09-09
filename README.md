@@ -37,7 +37,8 @@ you configure for alt text.
 - **Posts on their own.** Some things deserve their own post rather than being
   buried in a thread. Switch the composer to "On its own" and it posts as a
   root. Those posts collect in a second lane beside the thread, kept in this
-  browser so the session survives a reload. They are cleared with one button
+  browser so the session survives a reload. Below 780 pixels there is no room
+  for two columns, so the lane picker in the composer switches the view as well. They are cleared with one button
   and nothing is removed from Bluesky.
 - **Quotes.** Paste a post link into the composer and it becomes a quote rather
   than a bare URL, with media alongside it if you attach any. Every post in
@@ -48,10 +49,14 @@ you configure for alt text.
   can also be hidden: stored on the post record and indexed by Bluesky, but
   never shown in the text. Set them per post, or set them once in settings and
   they ride along on every post in the thread.
-- **Sending.** Posts are queued in order, so each one lands as a reply to the
-  last. The composer clears the instant you press send and the network work
-  happens behind it. Attachments are uploaded the moment they are added, so
-  pressing send does not wait on them.
+- **Sending.** The thread reads downwards and the composer sits at the bottom,
+  directly under the newest post, so the next thing you write is always in the
+  same place. Posts are queued in order, so each one lands as a reply to the
+  last. The box is one line tall and grows downwards as you write. It clears
+  the instant you press send, keeps the caret, and
+  the network work happens behind it. The view follows the tail of the thread
+  unless you have scrolled back up to read. Attachments are uploaded the moment
+  they are added, so pressing send does not wait on them.
 - **Media.** Paste, drop, or pick up to four images, or one video. Images are
   kept at full detail up to 2 MB and 4096 pixels on the long edge, and only
   re-encoded if they exceed that. Videos may be up to 300 MB and 10 minutes;
@@ -98,20 +103,20 @@ Anywhere:
 | Key | Action |
 | --- | --- |
 | Cmd/Ctrl + Enter | Send the post or reply |
-| Cmd/Ctrl + ↑ / ↓ | Move between posts in the current lane |
+| Cmd/Ctrl + ↑ / ↓ | Move up and down the current lane |
 | Alt + Enter | Continue the thread under the selected post |
 | Cmd/Ctrl + Shift + C | Copy the link to the selected post |
-| Cmd/Ctrl + Shift + N | Switch between the thread and a post on its own |
+| Cmd/Ctrl + Shift + O | Write a post that is not part of the thread |
 | Cmd/Ctrl + , | Settings |
 | Cmd/Ctrl + / | Keyboard reference |
-| Escape | Clear the selection, or leave the composer |
+| Escape | Close a sheet, clear the selection, or leave the composer |
 
 When the composer is not focused:
 
 | Key | Action |
 | --- | --- |
-| J / ↓ | Next post |
-| K / ↑ | Previous post |
+| J / ↓ | Down the thread, towards the newest post |
+| K / ↑ | Up the thread, towards the start |
 | Enter | Back to the composer |
 | R | Continue the thread under the selected post |
 | C | Copy the link to the selected post |

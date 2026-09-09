@@ -123,7 +123,9 @@ type ThreadState = {
   setDraft: (text: string) => void;
   clearMediaError: () => void;
 
-  setLane: (lane: Lane) => void;
+  /** Opens the separate composer for a post that is not part of the thread. */
+  openAside: () => void;
+  closeAside: () => void;
   selectPost: (id: string | null) => void;
   moveSelection: (delta: number) => void;
   replyToSelected: () => void;
@@ -218,6 +220,16 @@ function uid(): string {
   return Math.random().toString(36).slice(2, 10);
 }
 
+type StashedDraft = {
+  draft: string;
+  media: MediaItem[];
+  quote: QuotePreview | null;
+  draftTags: string[];
+};
+
+/** Holds the thread draft while the separate composer is open. */
+let stashedDraft: StashedDraft | null = null;
+
 type PendingSend = {
   media: MediaItem[];
   quote: StrongRef | null;
@@ -279,20 +291,50 @@ export const useThread = create<ThreadState>((set, get) => ({
 
   clearMediaError: () => set({ mediaError: null }),
 
-  setLane: (lane) =>
-    set({ lane, selectedId: null, ...(lane === "aside" ? { replyToId: null } : {}) }),
+  openAside: () => {
+    if (get().lane === "aside") return;
+    const { draft, media, quote, draftTags } = get();
+    // The thread draft is put aside rather than lost, and comes back when the
+    // separate composer closes.
+    stashedDraft = { draft, media, quote, draftTags };
+    set({
+      lane: "aside",
+      draft: "",
+      media: [],
+      quote: null,
+      draftTags: [],
+      mediaError: null,
+      selectedId: null,
+    });
+  },
+
+  closeAside: () => {
+    if (get().lane !== "aside") return;
+    // Anything still attached to the abandoned draft is released.
+    for (const item of get().media) URL.revokeObjectURL(item.previewUrl);
+    set({
+      lane: "thread",
+      draft: stashedDraft?.draft ?? "",
+      media: stashedDraft?.media ?? [],
+      quote: stashedDraft?.quote ?? null,
+      draftTags: stashedDraft?.draftTags ?? [],
+      mediaError: null,
+    });
+    stashedDraft = null;
+  },
 
   selectPost: (id) => set({ selectedId: id }),
 
   moveSelection: (delta) => {
     const { lane, posts, aside, selectedId } = get();
-    // Both lanes read newest first, which is the order arrows should follow.
-    const list = (lane === "aside" ? aside : posts).slice().reverse();
+    // Both lanes read oldest first, so moving down goes towards the composer.
+    const list = lane === "aside" ? aside : posts;
     if (list.length === 0) return;
     const current = list.findIndex((post) => post.id === selectedId);
     const next =
       current === -1
-        ? delta > 0
+        ? // Nothing selected yet: come in from whichever end you are heading from.
+          delta > 0
           ? 0
           : list.length - 1
         : Math.min(list.length - 1, Math.max(0, current + delta));

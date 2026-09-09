@@ -24,7 +24,83 @@ import {
 const isMac =
   typeof navigator !== "undefined" && /Mac|iPhone|iPad/.test(navigator.platform);
 
+/** The bar under the thread. One line tall, growing downwards as you write. */
 export function Composer() {
+  const lane = useThread((state) => state.lane);
+  // While the separate composer is open it owns the draft, so the bar behind it
+  // shows nothing rather than mirroring what is being typed in the sheet.
+  if (lane === "aside") return <RestingBar />;
+  return <ComposerBody variant="inline" />;
+}
+
+function RestingBar() {
+  const rootRef = useThread((state) => state.rootRef);
+  const compact = useSettings((state) => state.compact);
+  return (
+    <div
+      aria-hidden
+      className={`flex items-start gap-2 border-t border-line bg-bg ${
+        compact ? "px-2.5 py-1.5" : "px-3 py-2"
+      }`}
+    >
+      <span className={`${compact ? "size-6" : "size-7"} mt-1 shrink-0 rounded-full bg-bg-sunken`} />
+      <span
+        className={`flex-1 py-1 leading-snug text-ink-faint ${
+          compact ? "text-[0.9rem]" : "text-[1rem]"
+        }`}
+      >
+        {rootRef ? "Add to the thread" : "Start the thread"}
+      </span>
+      <span className="mt-0.5 rounded-full bg-accent px-3 py-1.5 text-[0.8rem] font-semibold text-on-accent opacity-30">
+        {rootRef ? "Reply" : "Post"}
+      </span>
+    </div>
+  );
+}
+
+/** The separate composer for a post that stands on its own. */
+export function AsideComposerSheet() {
+  const closeAside = useThread((state) => state.closeAside);
+
+  useEffect(() => {
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        event.stopPropagation();
+        closeAside();
+      }
+    };
+    window.addEventListener("keydown", onKey, true);
+    return () => window.removeEventListener("keydown", onKey, true);
+  }, [closeAside]);
+
+  return (
+    <div
+      className="fixed inset-0 z-40 flex items-end justify-center bg-black/50 sm:items-start sm:p-4 sm:pt-[12vh]"
+      onMouseDown={(event) => {
+        if (event.target === event.currentTarget) closeAside();
+      }}
+    >
+      <div className="ls-enter flex max-h-[92svh] w-full max-w-lg flex-col overflow-hidden rounded-t-2xl border border-line bg-bg sm:rounded-2xl">
+        <header className="flex items-center justify-between border-b border-line-soft px-3 py-2.5">
+          <h2 className="text-[0.95rem] font-semibold">A post on its own</h2>
+          <button
+            type="button"
+            onClick={closeAside}
+            className="ls-tap ls-press rounded-full p-1.5 text-ink-muted hover:bg-bg-sunken"
+            aria-label="Close"
+          >
+            <CloseIcon />
+          </button>
+        </header>
+        <div className="ls-scroller min-h-0 flex-1 overflow-y-auto">
+          <ComposerBody variant="sheet" />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function ComposerBody({ variant }: { variant: "inline" | "sheet" }) {
   const draft = useThread((state) => state.draft);
   const media = useThread((state) => state.media);
   const setDraft = useThread((state) => state.setDraft);
@@ -37,7 +113,6 @@ export function Composer() {
   const rootRef = useThread((state) => state.rootRef);
   const posts = useThread((state) => state.posts);
   const lane = useThread((state) => state.lane);
-  const setLane = useThread((state) => state.setLane);
   const replyToId = useThread((state) => state.replyToId);
   const setReplyTo = useThread((state) => state.setReplyTo);
   const quote = useThread((state) => state.quote);
@@ -53,9 +128,11 @@ export function Composer() {
   const warnMissingAlt = useSettings((state) => state.warnMissingAlt);
   const compact = useSettings((state) => state.compact);
 
+  const rootNode = useRef<HTMLDivElement>(null);
   const textRef = useRef<HTMLTextAreaElement>(null);
   const tagRef = useRef<HTMLInputElement>(null);
   const fileRef = useRef<HTMLInputElement>(null);
+
   const [openAltFor, setOpenAltFor] = useState<string | null>(null);
   const [dragging, setDragging] = useState(false);
   const [sentTick, setSentTick] = useState(0);
@@ -75,7 +152,7 @@ export function Composer() {
     [draft, draftTags, threadTags, lane],
   );
   const suggestions = useMemo(
-    () => suggestTags(knownTags, activeTags),
+    () => suggestTags(knownTags, activeTags, 5),
     [knownTags, activeTags],
   );
 
@@ -89,17 +166,21 @@ export function Composer() {
     node.setSelectionRange(node.value.length, node.value.length);
   }, []);
 
-  // The composer is the whole point of this app, so it keeps the caret.
   useEffect(() => {
-    focus();
-  }, [focus, posts.length, rootRef?.uri, lane]);
+    if (variant === "sheet") requestAnimationFrame(focus);
+  }, [focus, variant]);
+
+  // After a post goes out the caret belongs back in the box.
+  useEffect(() => {
+    if (variant === "inline") focus();
+  }, [focus, variant, posts.length, rootRef?.uri]);
 
   useEffect(() => {
     const node = textRef.current;
     if (!node) return;
     node.style.height = "0px";
-    node.style.height = `${Math.min(node.scrollHeight, 260)}px`;
-  }, [draft, compact]);
+    node.style.height = `${Math.min(node.scrollHeight, variant === "sheet" ? 320 : 220)}px`;
+  }, [draft, compact, variant]);
 
   const trySend = useCallback(() => {
     if (empty || overLimit) return;
@@ -110,7 +191,8 @@ export function Composer() {
     setConfirmedFor(null);
     send();
     setSentTick((tick) => tick + 1);
-    requestAnimationFrame(focus);
+    setTagsOpen(false);
+    if (variant === "inline") requestAnimationFrame(focus);
   }, [
     empty,
     overLimit,
@@ -120,6 +202,7 @@ export function Composer() {
     draftSignature,
     send,
     focus,
+    variant,
   ]);
 
   // Pasting a post link attaches it as a quote rather than dumping a URL.
@@ -148,10 +231,19 @@ export function Composer() {
   }
 
   const openItem = media.find((item) => item.id === openAltFor);
-  const laneLabel = lane === "aside" ? "Post" : rootRef ? "Reply" : "Post";
+  const sendLabel = lane === "aside" ? "Post" : rootRef ? "Reply" : "Post";
+  const placeholder =
+    lane === "aside"
+      ? "Say something on its own"
+      : replyTarget
+        ? `Continue under post #${replyNumber}`
+        : rootRef
+          ? "Add to the thread"
+          : "Start the thread";
 
   return (
     <div
+      ref={rootNode}
       onDragOver={(event) => {
         event.preventDefault();
         setDragging(true);
@@ -163,113 +255,35 @@ export function Composer() {
         const files = Array.from(event.dataTransfer.files);
         if (files.length > 0) void addFiles(files);
       }}
-      className={`border-b border-line bg-bg ${
+      className={`bg-bg ${variant === "inline" ? "border-t border-line" : ""} ${
         dragging ? "outline outline-2 -outline-offset-2 outline-ink-muted" : ""
       }`}
     >
-      <span key={sentTick} className="ls-sent" aria-hidden />
+      {variant === "inline" ? (
+        <span key={sentTick} className="ls-sent" aria-hidden />
+      ) : null}
 
-      <div className="flex items-center gap-1 border-b border-line-soft px-2 py-1 text-[0.75rem]">
-        <div className="flex rounded-full bg-bg-sunken p-0.5">
-          {(["thread", "aside"] as const).map((value) => (
-            <button
-              key={value}
-              type="button"
-              onClick={() => setLane(value)}
-              className={`ls-press rounded-full px-2.5 py-1 font-medium ${
-                lane === value ? "bg-bg text-ink shadow-sm" : "text-ink-muted"
-              }`}
-            >
-              {value === "thread" ? "Thread" : "On its own"}
-            </button>
-          ))}
-        </div>
-
-        {lane === "thread" && replyTarget ? (
+      {lane === "thread" && replyTarget ? (
+        <div className="flex items-center gap-1.5 px-3 pt-1.5 text-[0.75rem] text-ink-muted">
+          <BranchIcon className="size-3" />
+          <span className="truncate">Continuing under post #{replyNumber}</span>
           <button
             type="button"
             onClick={() => setReplyTo(null)}
-            className="ls-press flex min-w-0 items-center gap-1 rounded-full bg-bg-sunken px-2 py-1 text-ink-muted"
-            title="Go back to the end of the thread"
+            className="ls-tap ls-press rounded p-0.5 hover:text-ink"
+            aria-label="Back to the end of the thread"
           >
-            <BranchIcon className="size-3" />
-            <span className="truncate">under #{replyNumber}</span>
             <CloseIcon className="size-3" />
           </button>
-        ) : null}
-
-        <span className="flex-1" />
-
-        <button
-          type="button"
-          onClick={() => {
-            setTagsOpen((open) => !open);
-            if (!tagsOpen) requestAnimationFrame(() => tagRef.current?.focus());
-          }}
-          className={`ls-tap ls-press flex items-center gap-1 rounded-full px-2 py-1 font-medium ${
-            draftTags.length > 0 ? "bg-bg-sunken text-ink" : "text-ink-muted"
-          }`}
-          title="Hidden hashtags for this post"
-        >
-          <TagIcon className="size-3.5" />
-          {draftTags.length > 0 ? draftTags.length : null}
-        </button>
-      </div>
-
-      {tagsOpen ? (
-        <div className="border-b border-line-soft px-2.5 py-1.5">
-          <div className="flex flex-wrap items-center gap-1">
-            {draftTags.map((tag) => (
-              <button
-                key={tag}
-                type="button"
-                onClick={() => removeDraftTag(tag)}
-                className="ls-press flex items-center gap-1 rounded-full bg-bg-sunken px-2 py-0.5 text-[0.75rem]"
-                title="Remove"
-              >
-                #{tag}
-                <CloseIcon className="size-2.5" />
-              </button>
-            ))}
-            <input
-              ref={tagRef}
-              value={tagInput}
-              onChange={(event) => setTagInput(event.target.value)}
-              onKeyDown={(event) => {
-                if (event.key === "Enter" || event.key === "," || event.key === " ") {
-                  event.preventDefault();
-                  commitTag(tagInput);
-                } else if (event.key === "Backspace" && !tagInput && draftTags.length) {
-                  removeDraftTag(draftTags[draftTags.length - 1]);
-                } else if (event.key === "Escape") {
-                  setTagsOpen(false);
-                  focus();
-                }
-              }}
-              placeholder={draftTags.length >= MAX_TAGS ? "Eight is the limit" : "Add a hidden tag"}
-              disabled={draftTags.length >= MAX_TAGS}
-              className="min-w-28 flex-1 bg-transparent py-0.5 text-[0.8rem] outline-none placeholder:text-ink-faint"
-            />
-          </div>
-          {lane === "thread" && threadTags.length > 0 ? (
-            <p className="mt-1 flex flex-wrap items-center gap-1 text-[0.72rem] text-ink-faint">
-              On every post in this thread:
-              {threadTags.map((tag) => (
-                <span key={tag} className="rounded bg-bg-sunken px-1.5 py-0.5">
-                  #{tag}
-                </span>
-              ))}
-            </p>
-          ) : null}
-          <p className="mt-1 text-[0.7rem] text-ink-faint">
-            Hidden tags are stored on the post and indexed by Bluesky, but never
-            shown in the text. Set thread-wide tags in settings.
-          </p>
         </div>
       ) : null}
 
-      <div className={`flex gap-2.5 ${compact ? "px-2.5 py-2" : "px-3 py-2.5"}`}>
-        {account?.did ? <ComposerAvatar /> : null}
+      <div
+        className={`gap-2 ${compact ? "px-2.5 py-1.5" : "px-3 py-2"} ${
+          variant === "sheet" ? "flex flex-col" : "flex items-start"
+        }`}
+      >
+        {account?.did && variant === "inline" ? <ComposerAvatar /> : null}
 
         <div className="min-w-0 flex-1">
           <textarea
@@ -284,29 +298,21 @@ export function Composer() {
               }
             }}
             rows={1}
-            placeholder={
-              lane === "aside"
-                ? "A post on its own"
-                : replyTarget
-                  ? `Continue under post #${replyNumber}`
-                  : rootRef
-                    ? "Add to the thread"
-                    : "Start the thread"
-            }
+            placeholder={placeholder}
             spellCheck
-            className={`w-full resize-none bg-transparent leading-snug outline-none placeholder:text-ink-faint ${
+            className={`block w-full resize-none bg-transparent py-1 leading-snug outline-none placeholder:text-ink-faint ${
               compact ? "text-[0.9rem]" : "text-[1rem]"
             }`}
           />
 
           {quoteLoading ? (
-            <p className="mt-1.5 flex items-center gap-1.5 text-[0.78rem] text-ink-muted">
+            <p className="mb-1 flex items-center gap-1.5 text-[0.78rem] text-ink-muted">
               <SpinnerIcon className="size-3.5" /> Loading the quoted post
             </p>
           ) : null}
 
           {quote ? (
-            <div className="mt-1.5 flex gap-2 rounded-lg border border-line px-2 py-1.5">
+            <div className="mb-1.5 flex gap-2 rounded-lg border border-line px-2 py-1.5">
               <div className="min-w-0 flex-1 text-[0.78rem]">
                 <p className="truncate font-medium">
                   {quote.displayName || quote.handle}{" "}
@@ -326,7 +332,7 @@ export function Composer() {
           ) : null}
 
           {media.length > 0 ? (
-            <div className="mt-1.5 flex flex-wrap gap-1.5">
+            <div className="mb-1.5 flex flex-wrap gap-1.5">
               {media.map((item) => (
                 <MediaThumb
                   key={item.id}
@@ -338,9 +344,67 @@ export function Composer() {
             </div>
           ) : null}
 
-          {suggestions.length > 0 ? (
-            <div className="mt-1.5 flex flex-wrap items-center gap-1">
-              <span className="text-[0.7rem] text-ink-faint">Used before</span>
+          {tagsOpen ? (
+            <div className="mb-1.5 rounded-lg border border-line px-2 py-1.5">
+              <div className="flex flex-wrap items-center gap-1">
+                {draftTags.map((tag) => (
+                  <button
+                    key={tag}
+                    type="button"
+                    onClick={() => removeDraftTag(tag)}
+                    className="ls-press flex items-center gap-1 rounded-full bg-bg-sunken px-2 py-0.5 text-[0.75rem]"
+                    title="Remove"
+                  >
+                    #{tag}
+                    <CloseIcon className="size-2.5" />
+                  </button>
+                ))}
+                <input
+                  ref={tagRef}
+                  value={tagInput}
+                  onChange={(event) => setTagInput(event.target.value)}
+                  onKeyDown={(event) => {
+                    if (
+                      event.key === "Enter" ||
+                      event.key === "," ||
+                      event.key === " "
+                    ) {
+                      event.preventDefault();
+                      commitTag(tagInput);
+                    } else if (
+                      event.key === "Backspace" &&
+                      !tagInput &&
+                      draftTags.length
+                    ) {
+                      removeDraftTag(draftTags[draftTags.length - 1]);
+                    } else if (event.key === "Escape") {
+                      setTagsOpen(false);
+                      focus();
+                    }
+                  }}
+                  placeholder={
+                    draftTags.length >= MAX_TAGS ? "Eight is the limit" : "Hidden tag"
+                  }
+                  disabled={draftTags.length >= MAX_TAGS}
+                  className="min-w-24 flex-1 bg-transparent py-0.5 text-[0.8rem] outline-none placeholder:text-ink-faint"
+                />
+              </div>
+              {lane === "thread" && threadTags.length > 0 ? (
+                <p className="mt-1 flex flex-wrap items-center gap-1 text-[0.72rem] text-ink-faint">
+                  On every post in this thread:
+                  {threadTags.map((tag) => (
+                    <span key={tag} className="rounded bg-bg-sunken px-1.5 py-0.5">
+                      #{tag}
+                    </span>
+                  ))}
+                </p>
+              ) : null}
+            </div>
+          ) : null}
+
+          {/* Suggestions only earn their line once there is something to tag. */}
+          {!empty && suggestions.length > 0 ? (
+            <div className="mb-1 flex flex-wrap items-center gap-1">
               {suggestions.map((tag) => (
                 <button
                   key={tag}
@@ -356,7 +420,7 @@ export function Composer() {
           ) : null}
 
           {mediaError ? (
-            <div className="mt-2 flex items-start gap-2 rounded-lg bg-danger/10 px-2.5 py-1.5 text-[0.78rem] text-danger">
+            <div className="mb-1.5 flex items-start gap-2 rounded-lg bg-danger/10 px-2.5 py-1.5 text-[0.78rem] text-danger">
               <WarningIcon className="mt-0.5 size-3.5" />
               <span className="flex-1">{mediaError}</span>
               <button
@@ -371,7 +435,7 @@ export function Composer() {
           ) : null}
 
           {confirmNoAlt ? (
-            <div className="mt-2 flex items-center gap-2 rounded-lg bg-bg-sunken px-2.5 py-1.5 text-[0.78rem] text-ink-muted">
+            <div className="mb-1.5 flex items-center gap-2 rounded-lg bg-bg-sunken px-2.5 py-1.5 text-[0.78rem] text-ink-muted">
               <WarningIcon className="size-3.5 text-danger" />
               <span className="flex-1">No alt text yet. Send anyway?</span>
               <button
@@ -383,34 +447,53 @@ export function Composer() {
               </button>
             </div>
           ) : null}
+        </div>
 
-          <div className="mt-1.5 flex items-center gap-2">
-            <button
-              type="button"
-              onClick={() => fileRef.current?.click()}
-              className="ls-tap ls-press rounded-full p-1.5 text-ink-muted hover:bg-bg-sunken hover:text-ink"
-              aria-label="Add images or a video"
-              title="Add images or a video"
-            >
-              <ImageIcon />
-            </button>
-            <input
-              ref={fileRef}
-              type="file"
-              accept="image/*,video/mp4,video/quicktime,video/webm,video/mpeg"
-              multiple
-              hidden
-              onChange={(event) => {
-                const files = Array.from(event.target.files ?? []);
-                if (files.length > 0) void addFiles(files);
-                event.target.value = "";
-              }}
-            />
+        <div
+          className={`flex shrink-0 items-center gap-0.5 ${
+            variant === "sheet" ? "justify-end" : "self-end pb-0.5"
+          }`}
+        >
+          <button
+            type="button"
+            onClick={() => fileRef.current?.click()}
+            className="ls-tap ls-press rounded-full p-1.5 text-ink-faint hover:bg-bg-sunken hover:text-ink"
+            aria-label="Add images or a video"
+            title="Add images or a video"
+          >
+            <ImageIcon />
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              setTagsOpen((state) => !state);
+              if (!tagsOpen) requestAnimationFrame(() => tagRef.current?.focus());
+            }}
+            className={`ls-tap ls-press flex items-center gap-0.5 rounded-full p-1.5 text-[0.72rem] font-medium hover:bg-bg-sunken hover:text-ink ${
+              draftTags.length > 0 ? "text-ink" : "text-ink-faint"
+            }`}
+            aria-label="Hidden hashtags"
+            title="Hidden hashtags"
+          >
+            <TagIcon className="size-[18px]" />
+            {draftTags.length > 0 ? draftTags.length : null}
+          </button>
+          <input
+            ref={fileRef}
+            type="file"
+            accept="image/*,video/mp4,video/quicktime,video/webm,video/mpeg"
+            multiple
+            hidden
+            onChange={(event) => {
+              const files = Array.from(event.target.files ?? []);
+              if (files.length > 0) void addFiles(files);
+              event.target.value = "";
+            }}
+          />
 
-            <span className="flex-1" />
-
+          {count > 0 ? (
             <span
-              className={`text-[0.75rem] tabular-nums ${
+              className={`px-1 text-[0.72rem] tabular-nums ${
                 overLimit
                   ? "text-danger"
                   : count > MAX_GRAPHEMES - 40
@@ -420,17 +503,17 @@ export function Composer() {
             >
               {MAX_GRAPHEMES - count}
             </span>
+          ) : null}
 
-            <button
-              type="button"
-              onClick={trySend}
-              disabled={empty || overLimit}
-              title={`${isMac ? "Cmd" : "Ctrl"} + Enter`}
-              className="ls-press rounded-full bg-accent px-3.5 py-1.5 text-[0.85rem] font-semibold text-on-accent hover:bg-accent-hover disabled:opacity-35"
-            >
-              {laneLabel}
-            </button>
-          </div>
+          <button
+            type="button"
+            onClick={trySend}
+            disabled={empty || overLimit}
+            title={`${isMac ? "Cmd" : "Ctrl"} + Enter`}
+            className="ls-press ml-0.5 rounded-full bg-accent px-3 py-1.5 text-[0.8rem] font-semibold text-on-accent hover:bg-accent-hover disabled:opacity-30"
+          >
+            {sendLabel}
+          </button>
         </div>
       </div>
 
@@ -450,16 +533,17 @@ export function Composer() {
 function ComposerAvatar() {
   const profile = useThread((state) => state.profile);
   const compact = useSettings((state) => state.compact);
-  const size = compact ? "size-8" : "size-9";
+  const size = compact ? "size-6" : "size-7";
+  // Sits beside the first line of the box rather than drifting to the bottom.
   if (!profile?.avatar) {
-    return <span className={`${size} shrink-0 rounded-full bg-bg-sunken`} />;
+    return <span className={`${size} mt-1 shrink-0 rounded-full bg-bg-sunken`} />;
   }
   return (
     // eslint-disable-next-line @next/next/no-img-element
     <img
       src={profile.avatar}
       alt=""
-      className={`${size} shrink-0 rounded-full object-cover`}
+      className={`${size} mt-1 shrink-0 rounded-full object-cover`}
     />
   );
 }
