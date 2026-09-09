@@ -1,26 +1,205 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme {
+  --font-sans:
+    -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu,
+    Cantarell, "Helvetica Neue", Arial, "Noto Sans", sans-serif,
+    "Apple Color Emoji", "Segoe UI Emoji";
+  --font-mono:
+    ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+
+  /* Neutral by design: blacks, greys and whites, with colour reserved for
+     the few states that genuinely need to be noticed. */
+  --color-bg: #ffffff;
+  --color-bg-raised: #fafafa;
+  --color-bg-sunken: #f4f4f5;
+  --color-line: #e2e2e5;
+  --color-line-soft: #eeeef0;
+  --color-ink: #0a0a0b;
+  --color-ink-muted: #5b5b63;
+  --color-ink-faint: #9a9aa3;
+
+  /* Primary actions invert the page rather than introducing a brand colour. */
+  --color-accent: #18181b;
+  --color-accent-hover: #2f2f34;
+  --color-on-accent: #ffffff;
+
+  --color-danger: #b4322f;
+  --color-good: #4b7f5c;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+.dark {
+  --color-bg: #0a0a0a;
+  --color-bg-raised: #141415;
+  --color-bg-sunken: #1c1c1e;
+  --color-line: #2a2a2d;
+  --color-line-soft: #212123;
+  --color-ink: #fafafa;
+  --color-ink-muted: #a3a3ab;
+  --color-ink-faint: #6f6f78;
+
+  --color-accent: #fafafa;
+  --color-accent-hover: #e2e2e5;
+  --color-on-accent: #0a0a0a;
+
+  --color-danger: #f2726f;
+  --color-good: #7fbd94;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+html,
+body {
+  height: 100%;
+  /* Dynamic viewport units keep the layout right when a mobile keyboard or
+     browser chrome appears and disappears. */
+  height: 100dvh;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background-color: var(--color-bg);
+  touch-action: manipulation;
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  overscroll-behavior-y: none;
+}
+
+* {
+  -webkit-tap-highlight-color: transparent;
+}
+
+textarea,
+input {
+  font-family: inherit;
+}
+
+/* Thin, quiet scrollbars so narrow split-screen windows stay tidy. */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-line) transparent;
+}
+*::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+*::-webkit-scrollbar-thumb {
+  background-color: var(--color-line);
+  border-radius: 8px;
+}
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+@keyframes ls-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.ls-enter {
+  animation: ls-fade-in 160ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* Long threads stay cheap to scroll: rows outside the viewport are skipped
+   during layout and paint, with a reserved height so the scrollbar is stable. */
+.ls-row {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 108px;
+}
+
+/* Momentum scrolling that does not drag the page behind it. */
+.ls-scroller {
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
+}
+
+/* Presses feel physical without costing a repaint. */
+.ls-press {
+  transition:
+    transform 90ms cubic-bezier(0.22, 1, 0.36, 1),
+    background-color 120ms ease,
+    opacity 120ms ease;
+}
+.ls-press:active:not(:disabled) {
+  transform: scale(0.96);
+}
+
+/* A quiet confirmation that a post has left the composer: a hairline that
+   sweeps across the top and fades. */
+@keyframes ls-sent {
+  0% {
+    transform: scaleX(0);
+    opacity: 1;
+  }
+  55% {
+    transform: scaleX(1);
+    opacity: 1;
+  }
+  100% {
+    transform: scaleX(1);
+    opacity: 0;
+  }
+}
+.ls-sent {
+  display: block;
+  height: 2px;
+  background-color: var(--color-accent);
+  transform-origin: left center;
+  opacity: 0;
+  animation: ls-sent 480ms cubic-bezier(0.22, 1, 0.36, 1);
+  will-change: transform, opacity;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ls-enter,
+  .ls-sent {
+    animation: none;
+  }
+  .ls-press:active:not(:disabled) {
+    transform: none;
+  }
+}
+
+/* Stop iOS zooming the page when a field is focused. */
+@media (max-width: 640px) {
+  input,
+  textarea,
+  select {
+    font-size: 16px;
+  }
+}
+
+@keyframes ls-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+.ls-spin {
+  animation: ls-spin 700ms linear infinite;
+}
+
+/* Respect the notch and the home indicator when installed to a home screen. */
+.ls-safe-bottom {
+  padding-bottom: max(0.375rem, env(safe-area-inset-bottom));
+}
+.ls-safe-top {
+  padding-top: max(0.5rem, env(safe-area-inset-top));
+}
+
+/* Extends a small control's hit area to a comfortable size on touch screens
+   without changing how it is laid out. */
+.ls-tap {
+  position: relative;
+}
+.ls-tap::after {
+  content: "";
+  position: absolute;
+  inset: -7px;
 }

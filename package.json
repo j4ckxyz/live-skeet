@@ -9,9 +9,15 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "@atproto/lex": "^0.3.8",
+    "@atproto/lex-password-session": "^0.2.2",
+    "@atproto/syntax": "^0.7.5",
+    "@bsky/sdk": "^1.1.2",
+    "lucide-react": "^1.43.0",
     "next": "16.3.4",
     "react": "19.2.8",
-    "react-dom": "19.2.8"
+    "react-dom": "19.2.8",
+    "zustand": "^5.0.15"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
