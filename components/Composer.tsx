@@ -46,12 +46,12 @@ function RestingBar() {
       <span className={`${compact ? "size-6" : "size-7"} mt-1 shrink-0 rounded-full bg-bg-sunken`} />
       <span
         className={`flex-1 py-1 leading-snug text-ink-faint ${
-          compact ? "text-[0.9rem]" : "text-[1rem]"
+          compact ? "text-base" : "text-base"
         }`}
       >
         {rootRef ? "Add to the thread" : "Start the thread"}
       </span>
-      <span className="mt-0.5 rounded-full bg-accent px-3 py-1.5 text-[0.8rem] font-semibold text-on-accent opacity-30">
+      <span className="mt-0.5 rounded-full bg-bg-sunken px-3 py-1.5 text-sm font-semibold text-ink-faint">
         {rootRef ? "Reply" : "Post"}
       </span>
     </div>
@@ -82,12 +82,12 @@ export function AsideComposerSheet() {
     >
       <div className="ls-enter flex max-h-[92svh] w-full max-w-lg flex-col overflow-hidden rounded-t-2xl border border-line bg-bg sm:rounded-2xl">
         <header className="flex items-center justify-between border-b border-line-soft px-3 py-2.5">
-          <h2 className="text-[0.95rem] font-semibold">A post on its own</h2>
+          <h2 className="text-lg font-semibold">A post on its own</h2>
           <button
             type="button"
             onClick={closeAside}
             className="ls-tap ls-press rounded-full p-1.5 text-ink-muted hover:bg-bg-sunken"
-            aria-label="Close"
+            aria-label="Close without posting"
           >
             <CloseIcon />
           </button>
@@ -264,7 +264,7 @@ function ComposerBody({ variant }: { variant: "inline" | "sheet" }) {
       ) : null}
 
       {lane === "thread" && replyTarget ? (
-        <div className="flex items-center gap-1.5 px-3 pt-1.5 text-[0.75rem] text-ink-muted">
+        <div className="flex items-center gap-1.5 px-3 pt-1.5 text-xs text-ink-muted">
           <BranchIcon className="size-3" />
           <span className="truncate">Continuing under post #{replyNumber}</span>
           <button
@@ -300,20 +300,20 @@ function ComposerBody({ variant }: { variant: "inline" | "sheet" }) {
             rows={1}
             placeholder={placeholder}
             spellCheck
-            className={`block w-full resize-none bg-transparent py-1 leading-snug outline-none placeholder:text-ink-faint ${
-              compact ? "text-[0.9rem]" : "text-[1rem]"
+            className={`ls-composer-input block w-full resize-none bg-transparent py-1 leading-snug outline-none placeholder:text-ink-faint ${
+              compact ? "text-base" : "text-base"
             }`}
           />
 
           {quoteLoading ? (
-            <p className="mb-1 flex items-center gap-1.5 text-[0.78rem] text-ink-muted">
+            <p className="mb-1 flex items-center gap-1.5 text-sm text-ink-muted">
               <SpinnerIcon className="size-3.5" /> Loading the quoted post
             </p>
           ) : null}
 
           {quote ? (
             <div className="mb-1.5 flex gap-2 rounded-lg border border-line px-2 py-1.5">
-              <div className="min-w-0 flex-1 text-[0.78rem]">
+              <div className="min-w-0 flex-1 text-sm">
                 <p className="truncate font-medium">
                   {quote.displayName || quote.handle}{" "}
                   <span className="font-normal text-ink-muted">@{quote.handle}</span>
@@ -352,7 +352,7 @@ function ComposerBody({ variant }: { variant: "inline" | "sheet" }) {
                     key={tag}
                     type="button"
                     onClick={() => removeDraftTag(tag)}
-                    className="ls-press flex items-center gap-1 rounded-full bg-bg-sunken px-2 py-0.5 text-[0.75rem]"
+                    className="ls-press flex items-center gap-1 rounded-full bg-bg-sunken px-2 py-0.5 text-xs"
                     title="Remove"
                   >
                     #{tag}
@@ -383,14 +383,16 @@ function ComposerBody({ variant }: { variant: "inline" | "sheet" }) {
                     }
                   }}
                   placeholder={
-                    draftTags.length >= MAX_TAGS ? "Eight is the limit" : "Hidden tag"
+                    draftTags.length >= MAX_TAGS
+                      ? "Eight is the limit"
+                      : "Hidden hashtag"
                   }
                   disabled={draftTags.length >= MAX_TAGS}
-                  className="min-w-24 flex-1 bg-transparent py-0.5 text-[0.8rem] outline-none placeholder:text-ink-faint"
+                  className="min-w-24 flex-1 bg-transparent py-0.5 text-sm outline-none placeholder:text-ink-faint"
                 />
               </div>
               {lane === "thread" && threadTags.length > 0 ? (
-                <p className="mt-1 flex flex-wrap items-center gap-1 text-[0.72rem] text-ink-faint">
+                <p className="mt-1 flex flex-wrap items-center gap-1 text-xs text-ink-faint">
                   On every post in this thread:
                   {threadTags.map((tag) => (
                     <span key={tag} className="rounded bg-bg-sunken px-1.5 py-0.5">
@@ -405,13 +407,15 @@ function ComposerBody({ variant }: { variant: "inline" | "sheet" }) {
           {/* Suggestions only earn their line once there is something to tag. */}
           {!empty && suggestions.length > 0 ? (
             <div className="mb-1 flex flex-wrap items-center gap-1">
+              <span className="sr-only">Hashtags you have used before:</span>
               {suggestions.map((tag) => (
                 <button
                   key={tag}
                   type="button"
                   onClick={() => addDraftTag(tag)}
-                  className="ls-press rounded-full border border-line px-2 py-0.5 text-[0.72rem] text-ink-muted hover:bg-bg-sunken hover:text-ink"
-                  title="Add as a hidden tag"
+                  className="ls-press rounded-full border border-line px-2 py-0.5 text-xs text-ink-muted hover:bg-bg-sunken hover:text-ink"
+                  aria-label={`Add ${tag} as a hidden hashtag`}
+                  title="Used before. Adds it as a hidden hashtag."
                 >
                   #{tag}
                 </button>
@@ -420,7 +424,7 @@ function ComposerBody({ variant }: { variant: "inline" | "sheet" }) {
           ) : null}
 
           {mediaError ? (
-            <div className="mb-1.5 flex items-start gap-2 rounded-lg bg-danger/10 px-2.5 py-1.5 text-[0.78rem] text-danger">
+            <div className="mb-1.5 flex items-start gap-2 rounded-lg bg-danger/10 px-2.5 py-1.5 text-sm text-danger">
               <WarningIcon className="mt-0.5 size-3.5" />
               <span className="flex-1">{mediaError}</span>
               <button
@@ -435,13 +439,13 @@ function ComposerBody({ variant }: { variant: "inline" | "sheet" }) {
           ) : null}
 
           {confirmNoAlt ? (
-            <div className="mb-1.5 flex items-center gap-2 rounded-lg bg-bg-sunken px-2.5 py-1.5 text-[0.78rem] text-ink-muted">
+            <div className="mb-1.5 flex items-center gap-2 rounded-lg bg-bg-sunken px-2.5 py-1.5 text-sm text-ink-muted">
               <WarningIcon className="size-3.5 text-danger" />
               <span className="flex-1">No alt text yet. Send anyway?</span>
               <button
                 type="button"
                 onClick={trySend}
-                className="ls-press rounded-full bg-accent px-2.5 py-1 text-[0.75rem] font-semibold text-on-accent"
+                className="ls-press rounded-full bg-accent px-2.5 py-1 text-xs font-semibold text-on-accent"
               >
                 Send
               </button>
@@ -469,7 +473,7 @@ function ComposerBody({ variant }: { variant: "inline" | "sheet" }) {
               setTagsOpen((state) => !state);
               if (!tagsOpen) requestAnimationFrame(() => tagRef.current?.focus());
             }}
-            className={`ls-tap ls-press flex items-center gap-0.5 rounded-full p-1.5 text-[0.72rem] font-medium hover:bg-bg-sunken hover:text-ink ${
+            className={`ls-tap ls-press flex items-center gap-0.5 rounded-full p-1.5 text-xs font-medium hover:bg-bg-sunken hover:text-ink ${
               draftTags.length > 0 ? "text-ink" : "text-ink-faint"
             }`}
             aria-label="Hidden hashtags"
@@ -493,7 +497,7 @@ function ComposerBody({ variant }: { variant: "inline" | "sheet" }) {
 
           {count > 0 ? (
             <span
-              className={`px-1 text-[0.72rem] tabular-nums ${
+              className={`px-1 text-xs tabular-nums ${
                 overLimit
                   ? "text-danger"
                   : count > MAX_GRAPHEMES - 40
@@ -510,7 +514,7 @@ function ComposerBody({ variant }: { variant: "inline" | "sheet" }) {
             onClick={trySend}
             disabled={empty || overLimit}
             title={`${isMac ? "Cmd" : "Ctrl"} + Enter`}
-            className="ls-press ml-0.5 rounded-full bg-accent px-3 py-1.5 text-[0.8rem] font-semibold text-on-accent hover:bg-accent-hover disabled:opacity-30"
+            className="ls-press ml-0.5 rounded-full bg-accent px-3 py-1.5 text-sm font-semibold text-on-accent transition-colors hover:bg-accent-hover disabled:bg-bg-sunken disabled:text-ink-faint"
           >
             {sendLabel}
           </button>
@@ -586,7 +590,7 @@ function MediaThumb({
       <button
         type="button"
         onClick={onOpen}
-        className={`absolute bottom-1 left-1 flex items-center gap-1 rounded px-1.5 py-0.5 text-[0.62rem] font-bold tracking-wide ${
+        className={`absolute bottom-1 left-1 flex items-center gap-1 rounded px-1.5 py-0.5 text-2xs font-bold tracking-wide ${
           hasAlt ? "bg-black/70 text-white" : "bg-danger text-white"
         }`}
       >
@@ -599,12 +603,12 @@ function MediaThumb({
       </button>
 
       {item.uploadStatus === "uploading" ? (
-        <span className="pointer-events-none absolute bottom-1 right-1 truncate rounded bg-black/65 px-1 py-0.5 text-[0.6rem] text-white">
+        <span className="pointer-events-none absolute bottom-1 right-1 truncate rounded bg-black/65 px-1 py-0.5 text-2xs text-white">
           {item.uploadLabel ?? "Uploading"}
         </span>
       ) : null}
       {item.uploadStatus === "error" ? (
-        <span className="pointer-events-none absolute bottom-1 right-1 truncate rounded bg-danger px-1 py-0.5 text-[0.6rem] text-white">
+        <span className="pointer-events-none absolute bottom-1 right-1 truncate rounded bg-danger px-1 py-0.5 text-2xs text-white">
           Failed
         </span>
       ) : null}

@@ -42,10 +42,10 @@ export function TopBar({
       )}
 
       <div className="min-w-0 flex-1 leading-tight">
-        <p className="truncate text-[0.85rem] font-semibold">
+        <p className="truncate text-sm font-semibold">
           {profile?.displayName || profile?.handle || "Live Skeet"}
         </p>
-        <p className="truncate text-[0.75rem] text-ink-muted">
+        <p className="truncate text-xs text-ink-muted">
           @{profile?.handle}
           {rootRef ? (
             <span className="text-ink-faint">
@@ -73,7 +73,7 @@ export function TopBar({
         <button
           type="button"
           onClick={onShowAside}
-          className="ls-tap ls-press hidden rounded-full bg-bg-sunken px-2 py-1 text-[0.75rem] font-medium text-ink-muted max-[779px]:block"
+          className="ls-tap ls-press hidden rounded-full bg-bg-sunken px-2 py-1 text-xs font-medium text-ink-muted max-[779px]:block"
           title="Posts on their own"
         >
           {asideCount} aside
@@ -117,7 +117,7 @@ export function ThreadBar() {
 
   if (rootRef) {
     return (
-      <div className="flex items-center gap-2 border-b border-line-soft bg-bg-raised px-3 py-1.5 text-[0.78rem]">
+      <div className="flex items-center gap-2 border-b border-line-soft bg-bg-raised px-3 py-1.5 text-sm">
         <span className="size-1.5 shrink-0 rounded-full bg-good" />
         <span className="min-w-0 flex-1 truncate text-ink-muted">
           Adding to your thread
@@ -140,7 +140,7 @@ export function ThreadBar() {
   }
 
   return (
-    <div className="border-b border-line-soft bg-bg-raised px-3 py-1.5 text-[0.78rem]">
+    <div className="border-b border-line-soft bg-bg-raised px-3 py-1.5 text-sm">
       <div className="flex items-center gap-2">
         <span className="min-w-0 flex-1 truncate text-ink-muted">
           New thread
@@ -175,12 +175,12 @@ export function ThreadBar() {
               }
             }}
             placeholder="https://bsky.app/profile/.../post/... or at://..."
-            className="min-w-0 flex-1 rounded-lg border border-line bg-bg px-2.5 py-1.5 text-[0.8rem] outline-none placeholder:text-ink-faint focus:border-ink-muted"
+            className="min-w-0 flex-1 rounded-lg border border-line bg-bg px-2.5 py-1.5 text-sm outline-none placeholder:text-ink-faint focus:border-ink-muted"
           />
           <button
             type="submit"
             disabled={loading}
-            className="flex shrink-0 items-center gap-1.5 rounded-lg bg-accent px-3 py-1.5 font-semibold text-on-accent disabled:opacity-40"
+            className="flex shrink-0 items-center gap-1.5 rounded-lg bg-accent px-3 py-1.5 font-semibold text-on-accent disabled:bg-bg-sunken disabled:text-ink-faint"
           >
             {loading ? <SpinnerIcon className="size-3.5" /> : null}
             Load
@@ -188,7 +188,7 @@ export function ThreadBar() {
         </form>
       ) : null}
 
-      {error ? <p className="pb-1 text-[0.75rem] text-danger">{error}</p> : null}
+      {error ? <p className="pb-1 text-xs text-danger">{error}</p> : null}
     </div>
   );
 }

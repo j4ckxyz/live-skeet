@@ -125,8 +125,12 @@ When the composer is not focused:
 ## Design
 
 Neutral throughout: blacks, greys and whites in both themes, with colour used
-only where a state has to be noticed. Type is the system UI stack, nothing
-loaded over the network. Icons are [Lucide](https://lucide.dev) (ISC licence).
+only where a state has to be noticed. Type is the system UI stack on a six-step
+scale, nothing loaded over the network. Icons are [Lucide](https://lucide.dev)
+(ISC licence). Every text colour clears WCAG AA against every surface it is
+used on, in both themes, and focus is restyled rather than removed.
+
+The reasoning behind those choices is in `.impeccable.md`.
 
 Long threads use `content-visibility` so scrolling stays cheap however many
 posts pile up, presses have a small physical response, and every animation is

@@ -13,7 +13,7 @@ import {
   ReplyIcon,
   RepostIcon,
   SpinnerIcon,
-  TagIcon,
+  TrashIcon,
   WarningIcon,
 } from "./icons";
 
@@ -49,7 +49,7 @@ export function ThreadList({ lane = "thread" }: { lane?: Lane }) {
 
   if (lane === "thread" && loading) {
     return (
-      <p className="flex items-center justify-center gap-2 py-10 text-[0.85rem] text-ink-muted">
+      <p className="flex items-center justify-center gap-2 py-10 text-sm text-ink-muted">
         <SpinnerIcon className="size-4" /> Loading the thread
       </p>
     );
@@ -57,7 +57,7 @@ export function ThreadList({ lane = "thread" }: { lane?: Lane }) {
 
   if (ordered.length === 0) {
     return (
-      <p className="px-4 py-10 text-center text-[0.85rem] text-ink-faint">
+      <p className="px-4 py-10 text-center text-sm text-ink-faint">
         {lane === "aside"
           ? "Standalone posts from this session collect here."
           : rootRef
@@ -129,14 +129,17 @@ function PostRow({
   return (
     <li
       ref={ref}
+      tabIndex={0}
+      aria-current={selected ? "true" : undefined}
+      onFocus={() => selectPost(post.id)}
       onClick={() => selectPost(post.id)}
-      className={`ls-enter ls-row group/post border-b border-line-soft ${
+      className={`ls-enter ls-row group/post border-b border-line-soft focus-visible:outline-offset-[-2px] ${
         compact ? "px-2.5 py-2" : "px-3 py-2.5"
       } ${post.status === "sending" ? "opacity-60" : ""} ${
         selected ? "bg-bg-raised" : ""
       } ${replyTarget ? "border-l-2 border-l-ink" : ""}`}
     >
-      <div className="flex items-baseline gap-1.5 text-[0.78rem] text-ink-faint">
+      <div className="flex items-baseline gap-1.5 text-sm text-ink-faint">
         {post.lane === "thread" ? (
           <>
             <span className="font-medium tabular-nums text-ink-muted">
@@ -164,7 +167,7 @@ function PostRow({
             title="Copy link"
           >
             {copied ? (
-              <span className="text-[0.7rem] font-medium text-ink">Copied</span>
+              <span className="text-xs font-medium text-ink">Copied</span>
             ) : (
               <CopyIcon />
             )}
@@ -208,18 +211,18 @@ function PostRow({
 
         {post.status === "sent" && post.deletable ? (
           confirmDelete ? (
-            <span className="flex items-center gap-1.5">
+            <span className="flex items-center gap-2">
               <button
                 type="button"
                 onClick={() => void removePost(post.id)}
-                className="text-[0.75rem] font-medium text-danger"
+                className="ls-tap rounded text-xs font-medium text-danger underline-offset-2 hover:underline"
               >
                 Delete
               </button>
               <button
                 type="button"
                 onClick={() => setConfirmDelete(false)}
-                className="text-[0.75rem]"
+                className="ls-tap rounded text-xs text-ink-muted underline-offset-2 hover:underline"
               >
                 Cancel
               </button>
@@ -228,11 +231,15 @@ function PostRow({
             <button
               type="button"
               onClick={() => setConfirmDelete(true)}
-              className={`text-[0.75rem] hover:text-danger ${
-                selected ? "" : "opacity-0 group-hover/post:opacity-100 group-focus-within/post:opacity-100"
+              aria-label="Delete this post"
+              title="Delete this post"
+              className={`ls-tap ls-press rounded p-1 text-ink-faint hover:text-danger ${
+                selected
+                  ? ""
+                  : "opacity-0 group-hover/post:opacity-100 group-focus-within/post:opacity-100"
               }`}
             >
-              Delete
+              <TrashIcon />
             </button>
           )
         ) : null}
@@ -241,7 +248,7 @@ function PostRow({
       {post.text ? (
         <p
           className={`mt-0.5 whitespace-pre-wrap break-words ${
-            compact ? "text-[0.87rem]" : "text-[0.95rem]"
+            compact ? "text-sm" : "text-base"
           } leading-snug`}
         >
           {post.text}
@@ -249,7 +256,7 @@ function PostRow({
       ) : null}
 
       {post.quote ? (
-        <div className="mt-1.5 rounded-lg border border-line-soft px-2 py-1.5 text-[0.78rem] text-ink-muted">
+        <div className="mt-1.5 rounded-lg border border-line-soft px-2 py-1.5 text-sm text-ink-muted">
           <span className="font-medium text-ink">@{post.quote.handle}</span>{" "}
           <span className="line-clamp-2">{post.quote.text}</span>
         </div>
@@ -278,19 +285,8 @@ function PostRow({
         </div>
       ) : null}
 
-      {post.tags.length > 0 ? (
-        <p className="mt-1.5 flex flex-wrap items-center gap-1 text-[0.72rem] text-ink-faint">
-          <TagIcon className="size-3" />
-          {post.tags.map((tag) => (
-            <span key={tag} className="rounded bg-bg-sunken px-1.5 py-0.5">
-              {tag}
-            </span>
-          ))}
-        </p>
-      ) : null}
-
       {post.status === "failed" ? (
-        <div className="mt-1.5 flex items-start gap-1.5 rounded-lg bg-danger/10 px-2 py-1.5 text-[0.78rem] text-danger">
+        <div className="mt-1.5 flex items-start gap-1.5 rounded-lg bg-danger/10 px-2 py-1.5 text-sm text-danger">
           <WarningIcon className="mt-0.5 size-3.5" />
           <span className="flex-1 break-words">{post.error}</span>
           <button
@@ -311,11 +307,26 @@ function PostRow({
       ) : null}
 
       {post.status === "sent" ? (
-        <div className="mt-1.5 flex items-center gap-3.5 text-[0.75rem] tabular-nums text-ink-faint">
-          <Stat icon={<ReplyIcon />} value={post.stats.replies} label="replies" />
-          <Stat icon={<RepostIcon />} value={post.stats.reposts} label="reposts" />
-          <Stat icon={<HeartIcon />} value={post.stats.likes} label="likes" />
-          <Stat icon={<QuoteIcon />} value={post.stats.quotes} label="quotes" />
+        <div className="mt-1.5 flex flex-wrap items-center gap-x-3.5 gap-y-1 text-xs text-ink-faint">
+          <span className="flex items-center gap-3.5 tabular-nums">
+            <Stat icon={<ReplyIcon />} value={post.stats.replies} label="replies" />
+            <Stat icon={<RepostIcon />} value={post.stats.reposts} label="reposts" />
+            <Stat icon={<HeartIcon />} value={post.stats.likes} label="likes" />
+            <Stat icon={<QuoteIcon />} value={post.stats.quotes} label="quotes" />
+          </span>
+          {post.tags.length > 0 ? (
+            <span
+              className="flex flex-wrap items-center gap-1"
+              title="Hidden hashtags, stored on the post but not shown in its text"
+            >
+              <span className="sr-only">Hidden hashtags:</span>
+              {post.tags.map((tag) => (
+                <span key={tag} className="rounded bg-bg-sunken px-1.5 py-0.5">
+                  #{tag}
+                </span>
+              ))}
+            </span>
+          ) : null}
         </div>
       ) : null}
     </li>

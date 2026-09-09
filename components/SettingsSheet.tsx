@@ -40,7 +40,7 @@ export function SettingsSheet({ onClose, onSignOut }: Props) {
     >
       <div className="ls-enter flex max-h-[94svh] w-full max-w-lg flex-col overflow-hidden rounded-t-2xl border border-line bg-bg sm:rounded-2xl">
         <header className="flex items-center justify-between border-b border-line-soft px-3 py-2.5">
-          <h2 className="text-[0.95rem] font-semibold">Settings</h2>
+          <h2 className="text-lg font-semibold">Settings</h2>
           <button
             type="button"
             onClick={onClose}
@@ -63,7 +63,7 @@ export function SettingsSheet({ onClose, onSignOut }: Props) {
                       set({ theme: theme.value });
                       applyTheme(theme.value);
                     }}
-                    className={`flex-1 rounded-full px-3 py-1.5 text-[0.82rem] font-medium transition-colors ${
+                    className={`flex-1 rounded-full px-3 py-1.5 text-sm font-medium transition-colors ${
                       settings.theme === theme.value
                         ? "bg-bg text-ink shadow-sm"
                         : "text-ink-muted"
@@ -147,7 +147,7 @@ export function SettingsSheet({ onClose, onSignOut }: Props) {
                         key={provider}
                         type="button"
                         onClick={() => set({ altProvider: provider })}
-                        className={`flex-1 rounded-full px-3 py-1.5 text-[0.82rem] font-medium ${
+                        className={`flex-1 rounded-full px-3 py-1.5 text-sm font-medium ${
                           settings.altProvider === provider
                             ? "bg-bg text-ink shadow-sm"
                             : "text-ink-muted"
@@ -240,14 +240,14 @@ export function SettingsSheet({ onClose, onSignOut }: Props) {
               </>
             ) : null}
 
-            <p className="text-[0.75rem] leading-relaxed text-ink-faint">
+            <p className="text-xs leading-relaxed text-ink-faint">
               Keys are stored in this browser only and are sent straight to the
               provider you choose.
             </p>
           </Section>
 
           <Section title="Account">
-            <div className="rounded-xl border border-line-soft bg-bg-raised p-3 text-[0.82rem]">
+            <div className="rounded-xl border border-line-soft bg-bg-raised p-3 text-sm">
               <p className="font-medium">
                 {profile?.displayName || profile?.handle || "Signed in"}
               </p>
@@ -261,7 +261,7 @@ export function SettingsSheet({ onClose, onSignOut }: Props) {
             <button
               type="button"
               onClick={onSignOut}
-              className="w-full rounded-full border border-line px-4 py-2 text-[0.85rem] font-semibold text-danger hover:bg-danger/10"
+              className="w-full rounded-full border border-line px-4 py-2 text-sm font-semibold text-danger hover:bg-danger/10"
             >
               Sign out
             </button>
@@ -290,7 +290,7 @@ function ThreadTagEditor() {
     <>
       <Field
         label="Applied to every post in this thread"
-        hint="Stored on each post record and indexed by Bluesky, but never shown in the text. Eight tags at most, counting any written into the text itself."
+        hint="Stored on each post record and indexed by Bluesky, but never shown in the text. Eight hashtags at most, counting any written into the text itself."
       >
         <div className="flex flex-wrap items-center gap-1 rounded-xl border border-line bg-bg-raised px-2 py-1.5">
           {threadTags.map((tag) => (
@@ -300,7 +300,7 @@ function ThreadTagEditor() {
               onClick={() =>
                 setThreadTags(threadTags.filter((entry) => entry !== tag))
               }
-              className="ls-press flex items-center gap-1 rounded-full bg-bg-sunken px-2 py-0.5 text-[0.78rem]"
+              className="ls-press flex items-center gap-1 rounded-full bg-bg-sunken px-2 py-0.5 text-sm"
               title="Remove"
             >
               #{tag}
@@ -319,27 +319,28 @@ function ThreadTagEditor() {
             onBlur={() => add(value)}
             disabled={threadTags.length >= MAX_TAGS}
             placeholder={
-              threadTags.length >= MAX_TAGS ? "Eight is the limit" : "Add a tag"
+              threadTags.length >= MAX_TAGS ? "Eight is the limit" : "Add a hashtag"
             }
-            className="min-w-28 flex-1 bg-transparent py-0.5 text-[0.85rem] outline-none placeholder:text-ink-faint"
+            className="min-w-28 flex-1 bg-transparent py-0.5 text-sm outline-none placeholder:text-ink-faint"
           />
         </div>
       </Field>
 
       {knownTags.length > 0 ? (
         <div>
-          <p className="mb-1 text-[0.82rem] font-medium">Used before</p>
+          <p className="mb-1 text-sm font-medium">Hashtags you have used before</p>
           <div className="flex flex-wrap gap-1">
             {knownTags.map((tag) => (
               <span
                 key={tag}
-                className="flex items-center gap-1 rounded-full border border-line px-2 py-0.5 text-[0.75rem] text-ink-muted"
+                className="flex items-center gap-1 rounded-full border border-line px-2 py-0.5 text-xs text-ink-muted"
               >
                 <button
                   type="button"
                   onClick={() => setThreadTags([...threadTags, tag])}
                   className="hover:text-ink"
-                  title="Apply to the whole thread"
+                  aria-label={`Apply ${tag} to every post in this thread`}
+                  title="Apply to every post in this thread"
                 >
                   #{tag}
                 </button>
@@ -361,12 +362,12 @@ function ThreadTagEditor() {
 }
 
 const inputClass =
-  "w-full rounded-xl border border-line bg-bg-raised px-3 py-2 text-[0.88rem] outline-none placeholder:text-ink-faint focus:border-ink-muted";
+  "w-full rounded-xl border border-line bg-bg-raised px-3 py-2 text-sm outline-none placeholder:text-ink-faint focus:border-ink-muted";
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <section className="space-y-3">
-      <h3 className="text-[0.72rem] font-semibold uppercase tracking-wider text-ink-faint">
+      <h3 className="text-xs font-semibold uppercase tracking-wider text-ink-faint">
         {title}
       </h3>
       {children}
@@ -385,9 +386,9 @@ function Field({
 }) {
   return (
     <label className="block">
-      <span className="mb-1 block text-[0.82rem] font-medium">{label}</span>
+      <span className="mb-1 block text-sm font-medium">{label}</span>
       {hint ? (
-        <span className="mb-1.5 block text-[0.75rem] text-ink-faint">{hint}</span>
+        <span className="mb-1.5 block text-xs text-ink-faint">{hint}</span>
       ) : null}
       {children}
     </label>
@@ -405,30 +406,34 @@ function Toggle({
   checked: boolean;
   onChange: (value: boolean) => void;
 }) {
+  // The whole row is the control, so the label and hint are part of the target
+  // rather than dead text beside a small switch.
   return (
-    <label className="flex cursor-pointer items-start justify-between gap-3">
+    <button
+      type="button"
+      role="switch"
+      aria-checked={checked}
+      onClick={() => onChange(!checked)}
+      className="ls-press flex w-full items-start justify-between gap-3 text-left"
+    >
       <span>
-        <span className="block text-[0.85rem] font-medium">{label}</span>
+        <span className="block text-sm font-medium">{label}</span>
         {hint ? (
-          <span className="block text-[0.75rem] text-ink-faint">{hint}</span>
+          <span className="block text-xs text-ink-faint">{hint}</span>
         ) : null}
       </span>
-      <button
-        type="button"
-        role="switch"
-        aria-checked={checked}
-        aria-label={label}
-        onClick={() => onChange(!checked)}
+      <span
+        aria-hidden
         className={`mt-0.5 h-6 w-10 shrink-0 rounded-full p-0.5 transition-colors ${
-          checked ? "bg-accent" : "bg-bg-sunken border border-line"
+          checked ? "bg-accent" : "border border-line bg-bg-sunken"
         }`}
       >
         <span
-          className={`block size-5 rounded-full bg-white shadow transition-transform ${
-            checked ? "translate-x-4" : ""
+          className={`block size-5 rounded-full shadow transition-transform ${
+            checked ? "translate-x-4 bg-on-accent" : "bg-ink-faint"
           }`}
         />
-      </button>
-    </label>
+      </span>
+    </button>
   );
 }

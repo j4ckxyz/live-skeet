@@ -319,8 +319,10 @@ export default function Page() {
 
       {lane === "aside" ? <AsideComposerSheet /> : null}
 
+      <LiveStatus />
+
       <footer
-        className={`ls-safe-bottom flex items-center gap-2 border-t border-line bg-bg px-3 pt-1.5 text-[0.7rem] text-ink-faint ${
+        className={`ls-safe-bottom flex items-center gap-2 border-t border-line bg-bg px-3 pt-1.5 text-xs text-ink-faint ${
           compact ? "pt-1" : ""
         }`}
       >
@@ -364,6 +366,42 @@ export default function Page() {
   );
 }
 
+/**
+ * Sending happens behind the composer, so screen reader users get told about it
+ * rather than having to go looking.
+ */
+function LiveStatus() {
+  const posts = useThread((state) => state.posts);
+  const aside = useThread((state) => state.aside);
+  const [seen, setSeen] = useState<Map<string, string>>(() => new Map());
+  const [message, setMessage] = useState("");
+
+  // Derived during render rather than in an effect, so the announcement lands
+  // in the same paint as the change it describes.
+  const all = [...posts, ...aside];
+  let announcement = "";
+  let changed = false;
+  for (const post of all) {
+    const was = seen.get(post.id);
+    if (was === post.status) continue;
+    changed = true;
+    if (was === "sending" && post.status === "sent") announcement = "Posted.";
+    if (was === "sending" && post.status === "failed") {
+      announcement = `Post failed. ${post.error ?? ""}`.trim();
+    }
+  }
+  if (changed) {
+    setSeen(new Map(all.map((post) => [post.id, post.status])));
+    if (announcement) setMessage(announcement);
+  }
+
+  return (
+    <p aria-live="polite" className="sr-only">
+      {message}
+    </p>
+  );
+}
+
 function AsideLane({
   onShowThread,
 }: {
@@ -380,7 +418,7 @@ function AsideLane({
 
   return (
     <aside className="ls-aside flex min-h-0 flex-col border-line">
-      <div className="flex items-center gap-2 border-b border-line-soft bg-bg-raised px-3 py-1.5 text-[0.75rem]">
+      <div className="flex items-center gap-2 border-b border-line-soft bg-bg-raised px-3 py-1.5 text-xs">
         <button
           type="button"
           onClick={onShowThread}
@@ -395,7 +433,7 @@ function AsideLane({
           <button
             type="button"
             onClick={clearAside}
-            className="ls-tap ls-press font-medium text-ink-muted hover:text-ink"
+            className="ls-tap ls-press rounded font-medium text-ink-muted hover:text-ink"
             title="Clear this lane. The posts stay on Bluesky."
           >
             Clear

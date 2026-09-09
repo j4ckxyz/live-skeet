@@ -10,6 +10,21 @@
   --font-mono:
     ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
 
+  /* Six steps, no more. Anything that needs a size in between wants a
+     different element, not a different number. */
+  --text-2xs: 0.6875rem;
+  --text-2xs--line-height: 1rem;
+  --text-xs: 0.75rem;
+  --text-xs--line-height: 1.125rem;
+  --text-sm: 0.8125rem;
+  --text-sm--line-height: 1.25rem;
+  --text-base: 0.9375rem;
+  --text-base--line-height: 1.375rem;
+  --text-lg: 1.0625rem;
+  --text-lg--line-height: 1.5rem;
+  --text-xl: 1.375rem;
+  --text-xl--line-height: 1.75rem;
+
   /* Neutral by design: blacks, greys and whites, with colour reserved for
      the few states that genuinely need to be noticed. */
   --color-bg: #ffffff;
@@ -18,8 +33,8 @@
   --color-line: #e2e2e5;
   --color-line-soft: #eeeef0;
   --color-ink: #0a0a0b;
-  --color-ink-muted: #5b5b63;
-  --color-ink-faint: #9a9aa3;
+  --color-ink-muted: #4d4d55;
+  --color-ink-faint: #6e6e78;
 
   /* Primary actions invert the page rather than introducing a brand colour. */
   --color-accent: #18181b;
@@ -37,8 +52,8 @@
   --color-line: #2a2a2d;
   --color-line-soft: #212123;
   --color-ink: #fafafa;
-  --color-ink-muted: #a3a3ab;
-  --color-ink-faint: #6f6f78;
+  --color-ink-muted: #b0b0b8;
+  --color-ink-faint: #84848c;
 
   --color-accent: #fafafa;
   --color-accent-hover: #e2e2e5;
@@ -67,6 +82,18 @@ body {
 
 * {
   -webkit-tap-highlight-color: transparent;
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-ink);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
+/* The composer is focused almost all of the time, so a permanent ring around it
+   would be noise. The caret is indicator enough there. */
+.ls-composer-input:focus-visible {
+  outline: none;
 }
 
 textarea,
@@ -110,7 +137,7 @@ input {
    during layout and paint, with a reserved height so the scrollbar is stable. */
 .ls-row {
   content-visibility: auto;
-  contain-intrinsic-size: auto 108px;
+  contain-intrinsic-size: auto 96px;
 }
 
 /* Momentum scrolling that does not drag the page behind it. */
@@ -164,6 +191,9 @@ input {
   }
   .ls-press:active:not(:disabled) {
     transform: none;
+  }
+  .ls-scroller {
+    scroll-behavior: auto;
   }
 }
 

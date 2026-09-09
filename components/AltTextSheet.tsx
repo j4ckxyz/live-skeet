@@ -52,12 +52,12 @@ export function AltTextSheet({ item, onClose }: Props) {
     >
       <div className="ls-enter flex max-h-[92svh] w-full max-w-lg flex-col overflow-hidden rounded-t-2xl border border-line bg-bg sm:rounded-2xl">
         <header className="flex items-center justify-between border-b border-line-soft px-3 py-2.5">
-          <h2 className="text-[0.9rem] font-semibold">Alt text</h2>
+          <h2 className="text-lg font-semibold">Alt text</h2>
           <button
             type="button"
             onClick={onClose}
             className="ls-tap ls-press rounded-full p-1.5 text-ink-muted hover:bg-bg-sunken"
-            aria-label="Close"
+            aria-label="Close the alt text editor"
           >
             <CloseIcon />
           </button>
@@ -82,12 +82,12 @@ export function AltTextSheet({ item, onClose }: Props) {
           </div>
 
           {item.altStatus === "generating" ? (
-            <p className="mb-2 flex items-center gap-1.5 text-[0.78rem] text-ink-muted">
+            <p className="mb-2 flex items-center gap-1.5 text-sm text-ink-muted">
               <SpinnerIcon className="size-3.5" /> Writing alt text
             </p>
           ) : null}
           {item.altStatus === "error" ? (
-            <p className="mb-2 text-[0.78rem] text-danger">{item.altError}</p>
+            <p className="mb-2 text-sm text-danger">{item.altError}</p>
           ) : null}
 
           <textarea
@@ -96,7 +96,7 @@ export function AltTextSheet({ item, onClose }: Props) {
             onChange={(event) => setAlt(item.id, event.target.value.slice(0, ALT_TEXT_LIMIT))}
             rows={5}
             placeholder="Describe the image for people who cannot see it."
-            className="w-full resize-y rounded-xl border border-line bg-bg-raised p-2.5 text-[0.9rem] leading-relaxed outline-none placeholder:text-ink-faint focus:border-ink-muted"
+            className="w-full resize-y rounded-xl border border-line bg-bg-raised p-2.5 text-base leading-relaxed outline-none placeholder:text-ink-faint focus:border-ink-muted"
           />
 
           <div className="mt-2 flex items-center justify-between gap-2">
@@ -105,14 +105,14 @@ export function AltTextSheet({ item, onClose }: Props) {
                 type="button"
                 onClick={() => void regenerate(item.id)}
                 disabled={item.altStatus === "generating"}
-                className="flex items-center gap-1.5 rounded-full border border-line px-3 py-1.5 text-[0.8rem] font-medium text-ink-muted hover:bg-bg-sunken disabled:opacity-40"
+                className="flex items-center gap-1.5 rounded-full border border-line px-3 py-1.5 text-sm font-medium text-ink-muted hover:bg-bg-sunken disabled:opacity-40"
               >
-                <SparkIcon /> Rewrite with AI
+                <SparkIcon /> Write it again
               </button>
             ) : (
               <span />
             )}
-            <span className="text-[0.75rem] tabular-nums text-ink-faint">
+            <span className="text-xs tabular-nums text-ink-faint">
               {item.alt.length} / {ALT_TEXT_LIMIT}
             </span>
           </div>
@@ -122,7 +122,7 @@ export function AltTextSheet({ item, onClose }: Props) {
           <button
             type="button"
             onClick={onClose}
-            className="ls-press w-full rounded-full bg-accent px-4 py-2 text-[0.9rem] font-semibold text-on-accent hover:bg-accent-hover"
+            className="ls-press w-full rounded-full bg-accent px-4 py-2 text-base font-semibold text-on-accent hover:bg-accent-hover"
           >
             Done
           </button>

@@ -115,8 +115,8 @@ export function SignIn({ onSignedIn }: Props) {
     <div className="flex min-h-full items-center justify-center px-4 py-10">
       <div className="w-full max-w-[26rem]">
         <div className="mb-7 text-center">
-          <h1 className="text-[1.6rem] font-bold tracking-tight">Live Skeet</h1>
-          <p className="mt-1 text-[0.85rem] text-ink-muted">
+          <h1 className="text-xl font-bold tracking-tight">Live Skeet</h1>
+          <p className="mt-1 text-sm text-ink-muted">
             A stripped-back Bluesky client for posting a thread as it happens.
           </p>
         </div>
@@ -125,7 +125,7 @@ export function SignIn({ onSignedIn }: Props) {
           <div className="relative">
             <label
               htmlFor="handle"
-              className="mb-1.5 block text-[0.78rem] font-medium text-ink-muted"
+              className="mb-1.5 block text-sm font-medium text-ink-muted"
             >
               Handle
             </label>
@@ -161,7 +161,7 @@ export function SignIn({ onSignedIn }: Props) {
                   setShowList(false);
                 }
               }}
-              className="w-full rounded-xl border border-line bg-bg-raised px-3 py-2.5 text-[0.95rem] outline-none placeholder:text-ink-faint focus:border-ink-muted"
+              className="w-full rounded-xl border border-line bg-bg-raised px-3 py-2.5 text-base outline-none placeholder:text-ink-faint focus:border-ink-muted"
             />
 
             {listOpen ? (
@@ -188,10 +188,10 @@ export function SignIn({ onSignedIn }: Props) {
                         <span className="size-7 rounded-full bg-bg-sunken" />
                       )}
                       <span className="min-w-0">
-                        <span className="block truncate text-[0.85rem] font-medium">
+                        <span className="block truncate text-sm font-medium">
                           {suggestion.displayName || suggestion.handle}
                         </span>
-                        <span className="block truncate text-[0.78rem] text-ink-muted">
+                        <span className="block truncate text-sm text-ink-muted">
                           @{suggestion.handle}
                         </span>
                       </span>
@@ -201,7 +201,7 @@ export function SignIn({ onSignedIn }: Props) {
               </ul>
             ) : null}
 
-            <p className="mt-1.5 flex h-4 items-center gap-1.5 text-[0.75rem] text-ink-faint">
+            <p className="mt-1.5 flex h-4 items-center gap-1.5 text-xs text-ink-faint">
               {resolving ? (
                 <>
                   <SpinnerIcon className="size-3" /> Looking up your server
@@ -215,7 +215,7 @@ export function SignIn({ onSignedIn }: Props) {
           <div>
             <label
               htmlFor="password"
-              className="mb-1.5 block text-[0.78rem] font-medium text-ink-muted"
+              className="mb-1.5 block text-sm font-medium text-ink-muted"
             >
               App password
             </label>
@@ -227,7 +227,7 @@ export function SignIn({ onSignedIn }: Props) {
               autoComplete="current-password"
               placeholder="xxxx-xxxx-xxxx-xxxx"
               onChange={(event) => setPassword(event.target.value)}
-              className="w-full rounded-xl border border-line bg-bg-raised px-3 py-2.5 text-[0.95rem] outline-none placeholder:text-ink-faint focus:border-ink-muted"
+              className="w-full rounded-xl border border-line bg-bg-raised px-3 py-2.5 text-base outline-none placeholder:text-ink-faint focus:border-ink-muted"
             />
           </div>
 
@@ -235,7 +235,7 @@ export function SignIn({ onSignedIn }: Props) {
             <div>
               <label
                 htmlFor="factor"
-                className="mb-1.5 block text-[0.78rem] font-medium text-ink-muted"
+                className="mb-1.5 block text-sm font-medium text-ink-muted"
               >
                 Sign-in code
               </label>
@@ -245,12 +245,12 @@ export function SignIn({ onSignedIn }: Props) {
                 autoComplete="one-time-code"
                 placeholder="XXXXX-XXXXX"
                 onChange={(event) => setFactor(event.target.value)}
-                className="w-full rounded-xl border border-line bg-bg-raised px-3 py-2.5 text-[0.95rem] outline-none placeholder:text-ink-faint focus:border-ink-muted"
+                className="w-full rounded-xl border border-line bg-bg-raised px-3 py-2.5 text-base outline-none placeholder:text-ink-faint focus:border-ink-muted"
               />
             </div>
           ) : null}
 
-          <label className="flex items-center gap-2 pt-0.5 text-[0.8rem] text-ink-muted">
+          <label className="flex items-center gap-2 pt-0.5 text-sm text-ink-muted">
             <input
               type="checkbox"
               checked={remember}
@@ -261,7 +261,7 @@ export function SignIn({ onSignedIn }: Props) {
           </label>
 
           {error ? (
-            <p className="flex items-start gap-1.5 rounded-lg bg-danger/10 px-3 py-2 text-[0.8rem] text-danger">
+            <p className="flex items-start gap-1.5 rounded-lg bg-danger/10 px-3 py-2 text-sm text-danger">
               <WarningIcon className="mt-0.5 size-3.5" />
               <span>{error}</span>
             </p>
@@ -270,14 +270,14 @@ export function SignIn({ onSignedIn }: Props) {
           <button
             type="submit"
             disabled={busy || !handle.trim() || !password.trim()}
-            className="ls-press flex w-full items-center justify-center gap-2 rounded-full bg-accent px-4 py-2.5 text-[0.95rem] font-semibold text-on-accent transition-colors hover:bg-accent-hover disabled:opacity-40"
+            className="ls-press flex w-full items-center justify-center gap-2 rounded-full bg-accent px-4 py-2.5 text-base font-semibold text-on-accent transition-colors hover:bg-accent-hover disabled:bg-bg-sunken disabled:text-ink-faint"
           >
             {busy ? <SpinnerIcon className="size-4" /> : null}
             Sign in
           </button>
         </form>
 
-        <div className="mt-6 rounded-xl border border-line-soft bg-bg-raised p-3.5 text-[0.78rem] leading-relaxed text-ink-muted">
+        <div className="mt-6 rounded-xl border border-line-soft bg-bg-raised p-3.5 text-sm leading-relaxed text-ink-muted">
           <p className="mb-1.5 font-medium text-ink">Why an app password?</p>
           <p>
             Live Skeet has no backend. Everything runs in this browser tab and talks

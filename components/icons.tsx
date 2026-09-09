@@ -15,6 +15,7 @@ import {
   Plus,
   Settings2,
   Hash,
+  Trash2,
   Keyboard,
   Sparkles,
   TriangleAlert,
@@ -85,6 +86,10 @@ export function BranchIcon({ className = "size-3.5" }: IconProps) {
 
 export function PlusIcon({ className = "size-[18px]" }: IconProps) {
   return <Plus className={className} strokeWidth={2} aria-hidden />;
+}
+
+export function TrashIcon({ className = "size-3.5" }: IconProps) {
+  return <Trash2 className={className} strokeWidth={stroke} aria-hidden />;
 }
 
 export function KeyboardIcon({ className = "size-[18px]" }: IconProps) {
